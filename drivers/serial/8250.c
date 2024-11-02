@@ -309,9 +309,8 @@ static const struct serial8250_config uart_config[] = {
 	},
 };
 
-#if defined(CONFIG_MIPS_ALCHEMY)
-
-/* Au1x00 UART hardware has a weird register layout */
+#if defined(CONFIG_MIPS_ALCHEMY) || defined (CONFIG_SERIAL_8250_RALINK)
+/* Au1x00 and Ralink UART hardware has a weird register layout */
 static const u8 au_io_in_map[] = {
 	[UART_RX]  = 0,
 	[UART_IER] = 2,
@@ -575,8 +574,8 @@ static inline void _serial_dl_write(struct uart_8250_port *up, int value)
 	serial_outp(up, UART_DLM, value >> 8 & 0xff);
 }
 
-#if defined(CONFIG_MIPS_ALCHEMY)
-/* Au1x00 haven't got a standard divisor latch */
+#if defined(CONFIG_MIPS_ALCHEMY) || defined (CONFIG_SERIAL_8250_RALINK)
+/* Au1x00 and Ralink haven't got a standard divisor latch */
 static int serial_dl_read(struct uart_8250_port *up)
 {
 	if (up->port.iotype == UPIO_AU)
@@ -641,11 +640,13 @@ static unsigned int serial_icr_read(struct uart_8250_port *up, int offset)
  */
 static void serial8250_clear_fifos(struct uart_8250_port *p)
 {
+	int fcr = 0;
+
 	if (p->capabilities & UART_CAP_FIFO) {
-		serial_outp(p, UART_FCR, UART_FCR_ENABLE_FIFO);
-		serial_outp(p, UART_FCR, UART_FCR_ENABLE_FIFO |
+		fcr = uart_config[p->port.type].fcr;
+		serial_outp(p, UART_FCR, fcr | UART_FCR_ENABLE_FIFO);
+		serial_outp(p, UART_FCR, fcr | UART_FCR_ENABLE_FIFO |
 			       UART_FCR_CLEAR_RCVR | UART_FCR_CLEAR_XMIT);
-		serial_outp(p, UART_FCR, 0);
 	}
 }
 
@@ -1532,15 +1533,22 @@ static void serial8250_handle_port(struct uart_8250_port *up)
 {
 	unsigned int status;
 	unsigned long flags;
-
+	//struct tty_struct *tty = up->port.state->port.tty;
+		 
 	spin_lock_irqsave(&up->port.lock, flags);
 
 	status = serial_inp(up, UART_LSR);
 
 	DEBUG_INTR("status = %x...", status);
 
-	if (status & (UART_LSR_DR | UART_LSR_BI))
+	if (status & (UART_LSR_DR | UART_LSR_BI)) {
+		//tty->ops->send_xchar(tty, STOP_CHAR(tty));
+		//serial_outp(up, UART_MCR, UART_MCR_RTS);
 		receive_chars(up, &status);
+		//tty->ops->send_xchar(tty, START_CHAR(tty));
+		//serial_outp(up, UART_MCR, 0);
+	}
+
 	check_modem_status(up);
 	if (status & UART_LSR_THRE)
 		transmit_chars(up);
@@ -1592,7 +1600,7 @@ static irqreturn_t serial8250_interrupt(int irq, void *dev_id)
 			 * interrupt meaning an LCR write attempt occured while the
 			 * UART was busy. The interrupt must be cleared by reading
 			 * the UART status register (USR) and the LCR re-written. */
-			unsigned int status;
+			unsigned int status __maybe_unused;
 			status = *(volatile u32 *)up->port.private_data;
 			serial_out(up, UART_LCR, up->lcr);
 
@@ -1698,7 +1706,7 @@ static int serial_link_irq_chain(struct uart_8250_port *up)
 
 static void serial_unlink_irq_chain(struct uart_8250_port *up)
 {
-	struct irq_info *i;
+	struct irq_info *i = NULL;
 	struct hlist_node *n;
 	struct hlist_head *h;
 
@@ -2455,7 +2463,11 @@ serial8250_pm(struct uart_port *port, unsigned int state,
 static unsigned int serial8250_port_size(struct uart_8250_port *pt)
 {
 	if (pt->port.iotype == UPIO_AU)
+#ifdef CONFIG_SERIAL_8250_RALINK
+		return 256;
+#else
 		return 0x1000;
+#endif
 #ifdef CONFIG_ARCH_OMAP
 	if (is_omap_port(pt))
 		return 0x16 << pt->port.regshift;

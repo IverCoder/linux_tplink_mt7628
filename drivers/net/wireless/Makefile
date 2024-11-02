@@ -52,3 +52,61 @@ obj-$(CONFIG_MAC80211_HWSIM)	+= mac80211_hwsim.o
 obj-$(CONFIG_WL12XX)	+= wl12xx/
 
 obj-$(CONFIG_IWM)	+= iwmc3200wifi/
+
+ifneq ($(CONFIG_RT2860V2_AP),)
+obj-$(CONFIG_RT2860V2_AP)       += rt2860v2_ap/
+endif
+ifneq ($(CONFIG_RT2860V2_STA),)
+obj-$(CONFIG_RT2860V2_STA)      += rt2860v2_sta/
+endif
+ifneq ($(CONFIG_RLT_AP_SUPPORT),)
+obj-$(CONFIG_RLT_AP_SUPPORT)       += rlt_wifi_ap/
+endif
+ifneq ($(CONFIG_RLT_STA_SUPPORT),)
+obj-$(CONFIG_RLT_STA_SUPPORT)      += rlt_wifi_sta/
+endif
+ifneq ($(CONFIG_MT_AP_SUPPORT),)
+obj-$(CONFIG_MT_AP_SUPPORT)       += mt_wifi_ap/
+endif
+ifneq ($(CONFIG_MT_STA_SUPPORT),)
+obj-$(CONFIG_MT_STA_SUPPORT)      += mt_wifi_sta/
+endif
+ifneq ($(CONFIG_RTPCI_AP),)
+obj-$(CONFIG_RTPCI_AP)      	+= RTPCI_ap/
+endif
+ifneq ($(CONFIG_RT3090_AP),)
+obj-$(CONFIG_RT3090_AP)      	+= RT3090_ap/
+endif
+ifneq ($(CONFIG_RT5392_AP),)
+obj-$(CONFIG_RT5392_AP)      	+= RT5392_ap/
+endif
+ifneq ($(CONFIG_RT5592_AP),)
+obj-$(CONFIG_RT5592_AP)      	+= RT5592_ap/
+endif
+ifneq ($(CONFIG_RT3593_AP),)
+obj-$(CONFIG_RT3593_AP)      	+= RT3593_ap/
+endif
+ifneq ($(CONFIG_RT3572_AP),)
+obj-$(CONFIG_RT3572_AP)      	+= RT3572_ap/
+endif
+ifneq ($(CONFIG_RT5572_AP),)
+obj-$(CONFIG_RT5572_AP)      	+= RT5572_ap/
+endif
+ifneq ($(CONFIG_RT305x_INIC_MII),)
+obj-$(CONFIG_RT2880v2_INIC_MII) += iNIC/mii/
+endif
+ifneq ($(CONFIG_RT305x_INIC_MII),)
+obj-$(CONFIG_RT2880v2_INIC_PCI) += iNIC/pci/
+endif
+ifneq ($(CONFIG_RT305x_INIC_MII),)
+obj-$(CONFIG_RT305x_INIC_MII) += iNIC_RT305x/mii/
+endif
+ifneq ($(CONFIG_RT305x_INIC_USB),)
+obj-$(CONFIG_RT305x_INIC_USB) += iNIC_RT305x/usb/
+endif
+ifneq ($(CONFIG_MT7610_AP),)
+obj-$(CONFIG_MT7610_AP)      	+= MT7610_ap/
+endif
+ifneq ($(CONFIG_MT7612_AP),)
+obj-$(CONFIG_MT7612_AP)      	+= MT7612_ap/
+endif

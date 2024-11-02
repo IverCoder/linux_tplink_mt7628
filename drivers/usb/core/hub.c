@@ -2956,6 +2956,9 @@ hub_power_remaining (struct usb_hub *hub)
 	}
 	return remaining;
 }
+/*extern void led_setUsbOn(void);*/
+extern void led_setUsbOff(void);
+extern void led_setUsbFlash(void);
 
 /* Handle physical or logical connection change events.
  * This routine is called when:
@@ -3044,6 +3047,32 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
 			portstatus = status;
 		}
 	}
+	/* For USB Led, yuanshang, 2013-11-15 */
+	if (0 == hdev->level)
+	{
+		/*printk("%s: portstatus 0x%x\n", __FUNCTION__, portstatus);*/
+		if (!(portstatus & USB_PORT_STAT_CONNECTION))
+		{
+			//led_setUsbOff();
+		}
+		else
+		{
+			/* TODO, support printer */
+			led_setUsbFlash();
+		}
+	}
+
+	/* add by suweilin */
+	/*
+	  * 修复renable过程中hotplug无法生效的问题，释放锁以解除hotplug进程的阻塞，
+	  * 并延时充足的时间，让其执行驱动卸载，状态转化等工作。
+	  */
+	if (portchange & USB_PORT_STAT_C_ENABLE) {
+		usb_unlock_device(hdev);
+		ssleep(20);
+		usb_lock_device(hdev);
+	}
+	/* add end */
 
 	/* Return now if debouncing failed or nothing is connected or
 	 * the device was "removed".

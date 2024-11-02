@@ -1,4 +1,4 @@
-/* $Id: isdnl3.h,v 2.6.6.2 2001/09/23 22:24:49 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/isdnl3.h#1 $
  *
  * This software may be used and distributed according to the terms
  * of the GNU General Public License, incorporated herein by reference.

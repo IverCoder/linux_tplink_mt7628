@@ -247,7 +247,14 @@ static struct nf_hook_ops nf_nat_ops[] __read_mostly = {
 		.owner		= THIS_MODULE,
 		.pf		= NFPROTO_IPV4,
 		.hooknum	= NF_INET_PRE_ROUTING,
-		.priority	= NF_IP_PRI_NAT_DST,
+#ifdef CONFIG_NETFILTER_RALINK_SWQOS_SUPPORT
+		.priority	= NF_IP_PRI_NAT_DST_RALINK_QOS,	// Ralink: 
+													// Raise priority to make nat table has higher
+													// priority than mangle table.
+													// In other words, now NAT happenes before QoS marking.
+#else
+		.priority	= NF_IP_PRI_NAT_DST, 
+#endif
 	},
 	/* After packet filtering, change source */
 	{

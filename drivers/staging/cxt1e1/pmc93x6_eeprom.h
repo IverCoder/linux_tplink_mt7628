@@ -1,5 +1,5 @@
 /*
- * $Id: pmc93x6_eeprom.h,v 1.1 2005/09/28 00:10:08 rickd PMCC4_3_1B $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/staging/cxt1e1/pmc93x6_eeprom.h#1 $
  */
 
 #ifndef _INC_PMC93X6_EEPROM_H_

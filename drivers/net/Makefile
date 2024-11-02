@@ -34,6 +34,9 @@ obj-$(CONFIG_ENIC) += enic/
 obj-$(CONFIG_JME) += jme.o
 obj-$(CONFIG_BE2NET) += benet/
 obj-$(CONFIG_VMXNET3) += vmxnet3/
+obj-$(CONFIG_RALINK_RDM) += rt_rdm/
+obj-$(CONFIG_RAETH) += raeth/
+obj-$(CONFIG_MT6605_NFC) += nfc/
 
 gianfar_driver-objs := gianfar.o \
 		gianfar_ethtool.o \
@@ -154,6 +157,8 @@ obj-$(CONFIG_QLA3XXX) += qla3xxx.o
 obj-$(CONFIG_QLCNIC) += qlcnic/
 obj-$(CONFIG_QLGE) += qlge/
 
+obj-$(CONFIG_TITAN_GE) += titan_mdio.o titan_ge.o
+
 obj-$(CONFIG_PPP) += ppp_generic.o
 obj-$(CONFIG_PPP_ASYNC) += ppp_async.o
 obj-$(CONFIG_PPP_SYNC_TTY) += ppp_synctty.o
@@ -162,12 +167,13 @@ obj-$(CONFIG_PPP_BSDCOMP) += bsd_comp.o
 obj-$(CONFIG_PPP_MPPE) += ppp_mppe.o
 obj-$(CONFIG_PPPOE) += pppox.o pppoe.o
 obj-$(CONFIG_PPPOL2TP) += pppox.o
+obj-$(CONFIG_PPPOPPTP) += pppox.o pptp.o
 
 obj-$(CONFIG_SLIP) += slip.o
 obj-$(CONFIG_SLHC) += slhc.o
 
 obj-$(CONFIG_XEN_NETDEV_FRONTEND) += xen-netfront.o
-
+obj-$(CONFIG_IMQ) += imq.o
 obj-$(CONFIG_DUMMY) += dummy.o
 obj-$(CONFIG_IFB) += ifb.o
 obj-$(CONFIG_MACVLAN) += macvlan.o
@@ -296,3 +302,12 @@ obj-$(CONFIG_WIMAX) += wimax/
 obj-$(CONFIG_CAIF) += caif/
 
 obj-$(CONFIG_OCTEON_MGMT_ETHERNET) += octeon/
+ifeq ($(CONFIG_RALINK_HWCRYPTO), m)
+obj-$(CONFIG_RALINK_HWCRYPTO) += cryptoDriver/
+endif
+
+ifeq ($(CONFIG_TP_NEW_SUPER_DMZ), y)
+obj-m += sdmz.o
+endif
+#obj-m += eip93_drivers/cryptoEngine/V-Driver_93/build/
+#obj-m += eip93_drivers/slad_test_k/

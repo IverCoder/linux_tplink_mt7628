@@ -1166,6 +1166,24 @@ static long snd_ctl_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 	int __user *ip = argp;
 	int err;
 
+	//pork:printk("%s:%s \n",__func__,(cmd==SNDRV_CTL_IOCTL_PVERSION)?"PVER":\
+			(cmd==SNDRV_CTL_IOCTL_CARD_INFO)?"CARDINFO":\
+					(cmd==SNDRV_CTL_IOCTL_ELEM_LIST)?"ELEM LIST":\
+							(cmd==SNDRV_CTL_IOCTL_ELEM_INFO)?"ELEM INFO":\
+									(cmd==SNDRV_CTL_IOCTL_ELEM_READ)?"ELEM READ":\
+											(cmd==SNDRV_CTL_IOCTL_ELEM_WRITE)?"ELEM Write":\
+													(cmd==SNDRV_CTL_IOCTL_ELEM_LOCK)?"ELEM LOCK":\
+															(cmd==SNDRV_CTL_IOCTL_ELEM_UNLOCK)?"ELEM UNLK":\
+																	(cmd==SNDRV_CTL_IOCTL_ELEM_ADD)?"ELEM add":\
+																			(cmd==SNDRV_CTL_IOCTL_ELEM_REPLACE)?"ELEM replace":\
+																					(cmd==SNDRV_CTL_IOCTL_ELEM_REMOVE)?"ELEM remove":\
+																							(cmd==SNDRV_CTL_IOCTL_SUBSCRIBE_EVENTS)?"sub event":\
+																									(cmd==SNDRV_CTL_IOCTL_TLV_READ)?"TLV READ":\
+																											(cmd==SNDRV_CTL_IOCTL_TLV_WRITE)?"TLV Write":\
+																													(cmd==SNDRV_CTL_IOCTL_TLV_COMMAND)?"TLV Write":\
+																															(cmd==SNDRV_CTL_IOCTL_POWER)?"pow":\
+																																	(cmd==SNDRV_CTL_IOCTL_POWER_STATE)?"power stat":"others");
+
 	ctl = file->private_data;
 	card = ctl->card;
 	if (snd_BUG_ON(!card))

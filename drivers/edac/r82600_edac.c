@@ -7,7 +7,7 @@
  * Written by Tim Small <tim@buttersideup.com>, based on work by Thayne
  * Harbaugh, Dan Hollis <goemon at anime dot net> and others.
  *
- * $Id: edac_r82600.c,v 1.1.2.6 2005/10/05 00:43:44 dsp_llnl Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/edac/r82600_edac.c#1 $
  *
  * Written with reference to 82600 High Integration Dual PCI System
  * Controller Data Book:

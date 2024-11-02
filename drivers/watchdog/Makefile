@@ -9,6 +9,7 @@
 # you can fall back to an architecture specific driver and if
 # that also fails then you can fall back to the software watchdog
 # to give you some cover.
+EXTRA_CFLAGS = -Iarch/mips/ralink/
 
 # ISA-based Watchdog Cards
 obj-$(CONFIG_PCWATCHDOG) += pcwd.o
@@ -49,6 +50,8 @@ obj-$(CONFIG_NUC900_WATCHDOG) += nuc900_wdt.o
 obj-$(CONFIG_ADX_WATCHDOG) += adx_wdt.o
 obj-$(CONFIG_TS72XX_WATCHDOG) += ts72xx_wdt.o
 obj-$(CONFIG_IMX2_WDT) += imx2_wdt.o
+obj-$(CONFIG_RALINK_WATCHDOG) += ralink_wdt.o
+obj-$(CONFIG_RALINK_TIMER) += ralink_period.o
 
 # AVR32 Architecture
 obj-$(CONFIG_AT32AP700X_WDT) += at32ap700x_wdt.o

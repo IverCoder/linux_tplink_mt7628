@@ -1,4 +1,4 @@
-/* $Id: jade_irq.c,v 1.7.2.4 2004/02/11 13:21:34 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/jade_irq.c#1 $
  *
  * Low level JADE IRQ stuff (derived from original hscx_irq.c)
  *

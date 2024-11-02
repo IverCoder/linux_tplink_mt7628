@@ -25,6 +25,10 @@
 #define NETLINK_SCSITRANSPORT	18	/* SCSI Transports */
 #define NETLINK_ECRYPTFS	19
 
+#define NETLINK_WPORTAL  25  /* for wan block,fangruilong 2015.12 */
+/* add by suweilin */
+#define NETLINK_SDMZ		26 /*  for CONFIG_TP_SUPER_DMZ */
+/* add end */
 #define MAX_LINKS 32		
 
 struct sockaddr_nl {

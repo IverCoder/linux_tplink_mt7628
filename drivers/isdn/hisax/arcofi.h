@@ -1,4 +1,4 @@
-/* $Id: arcofi.h,v 1.6.6.2 2001/09/23 22:24:46 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/arcofi.h#1 $
  *
  * Ansteuerung ARCOFI 2165
  *

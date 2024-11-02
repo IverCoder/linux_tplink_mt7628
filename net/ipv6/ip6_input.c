@@ -45,7 +45,9 @@
 #include <net/addrconf.h>
 #include <net/xfrm.h>
 
-
+// add by yang taoliu for ipv6 pass through. 15Sep2014
+int ipv6_pass_through_enable = 0;
+EXPORT_SYMBOL(ipv6_pass_through_enable);
 
 inline int ip6_rcv_finish( struct sk_buff *skb)
 {
@@ -62,7 +64,7 @@ int ipv6_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt
 	struct inet6_dev *idev;
 	struct net *net = dev_net(skb->dev);
 
-	if (skb->pkt_type == PACKET_OTHERHOST) {
+	if (!ipv6_pass_through_enable && skb->pkt_type == PACKET_OTHERHOST) {
 		kfree_skb(skb);
 		return NET_RX_DROP;
 	}

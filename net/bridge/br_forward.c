@@ -20,6 +20,9 @@
 #include <linux/if_vlan.h>
 #include <linux/netfilter_bridge.h>
 #include "br_private.h"
+#ifdef CONFIG_BRIDGE_VLAN
+#include "br_vlan.h"
+#endif
 
 static int deliver_clone(const struct net_bridge_port *prev,
 			 struct sk_buff *skb,
@@ -30,6 +33,10 @@ static int deliver_clone(const struct net_bridge_port *prev,
 static inline int should_deliver(const struct net_bridge_port *p,
 				 const struct sk_buff *skb)
 {
+#ifdef CONFIG_BRIDGE_VLAN
+	if(!br_vlan_forward_hook(p, skb))
+		return 0;
+#endif
 	return (((p->flags & BR_HAIRPIN_MODE) || skb->dev != p->dev) &&
 		p->state == BR_STATE_FORWARDING);
 }

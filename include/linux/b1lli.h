@@ -1,4 +1,4 @@
-/* $Id: b1lli.h,v 1.8.8.3 2001/09/23 22:25:05 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/b1lli.h#1 $
  *
  * ISDN lowlevel-module for AVM B1-card.
  *

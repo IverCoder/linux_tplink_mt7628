@@ -1,4 +1,4 @@
-/* $Id: hfc_pci.c,v 1.48.2.4 2004/02/11 13:21:33 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/hfc_pci.c#1 $
  *
  * low level driver for CCD's hfc-pci based cards
  *
@@ -23,7 +23,7 @@
 #include <linux/sched.h>
 #include <linux/interrupt.h>
 
-static const char *hfcpci_revision = "$Revision: 1.48.2.4 $";
+static const char *hfcpci_revision = "$Revision: #1 $";
 
 /* table entry in the PCI devices list */
 typedef struct {

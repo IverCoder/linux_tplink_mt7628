@@ -1981,7 +1981,7 @@ int uart_suspend_port(struct uart_driver *drv, struct uart_port *uport)
 	struct tty_port *port = &state->port;
 	struct device *tty_dev;
 	struct uart_match match = {uport, drv};
-	struct tty_struct *tty;
+	struct tty_struct *tty __maybe_unused;
 
 	mutex_lock(&port->mutex);
 

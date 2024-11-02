@@ -1,6 +1,6 @@
 #ifndef GVP11_H
 
-/* $Id: gvp11.h,v 1.4 1997/01/19 23:07:12 davem Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/gvp11.h#1 $
  *
  * Header file for the GVP Series II SCSI controller for Linux
  *

@@ -10,7 +10,7 @@
  *
  * <achim_leubner@adaptec.com>
  *
- * $Id: gdth.h,v 1.58 2006/01/11 16:14:09 achim Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/gdth.h#1 $
  */
 
 #include <linux/types.h>

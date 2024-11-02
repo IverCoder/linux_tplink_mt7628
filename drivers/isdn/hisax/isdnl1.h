@@ -1,4 +1,4 @@
-/* $Id: isdnl1.h,v 2.12.2.3 2004/02/11 13:21:34 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/isdnl1.h#1 $
  *
  * Layer 1 defines
  *

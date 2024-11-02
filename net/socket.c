@@ -105,6 +105,12 @@
 #include <linux/sockios.h>
 #include <linux/atalk.h>
 
+/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+#include <linux/sched_optimize.h>
+#endif
+/* add end  */
+
 static int sock_no_open(struct inode *irrelevant, struct file *dontcare);
 static ssize_t sock_aio_read(struct kiocb *iocb, const struct iovec *iov,
 			 unsigned long nr_segs, loff_t pos);
@@ -1073,6 +1079,11 @@ static int sock_close(struct inode *inode, struct file *filp)
 		printk(KERN_DEBUG "sock_close: NULL inode\n");
 		return 0;
 	}
+	/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+	stopWaitTaskTimer(current, 1);
+#endif
+	/* add end  */
 	sock_release(SOCKET_I(inode));
 	return 0;
 }
@@ -1940,7 +1951,8 @@ out_put:
 	fput_light(sock->file, fput_needed);
 out:
 	return err;
-}
+} 
+EXPORT_SYMBOL(sys_sendmsg);
 
 static int __sys_recvmsg(struct socket *sock, struct msghdr __user *msg,
 			 struct msghdr *msg_sys, unsigned flags, int nosec)

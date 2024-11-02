@@ -1,4 +1,4 @@
-/* $Id: memchr.S,v 1.1 2000/04/14 16:49:01 mjd Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/sh/lib/memchr.S#1 $
  *
  * "memchr" implementation of SuperH
  *

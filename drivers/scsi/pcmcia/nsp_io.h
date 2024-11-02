@@ -7,7 +7,7 @@
 
   */
 
-/* $Id: nsp_io.h,v 1.3 2003/08/04 21:15:26 elca Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/pcmcia/nsp_io.h#1 $ */
 
 #ifndef __NSP_IO_H__
 #define __NSP_IO_H__

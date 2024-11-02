@@ -242,7 +242,8 @@ case "$arg" in
 		output=${cpio_list}
 		echo "$output_file" | grep -q "\.gz$" && compr="gzip -9 -f"
 		echo "$output_file" | grep -q "\.bz2$" && compr="bzip2 -9 -f"
-		echo "$output_file" | grep -q "\.lzma$" && compr="lzma -9 -f"
+		echo "$output_file" | grep -q "\.lzma$" && compr="lzma_alone"
+		echo "$output_file" | grep -q "\.xz$" && compr="xz --check=crc32 --lzma2=dict=1MiB"
 		echo "$output_file" | grep -q "\.lzo$" && compr="lzop -9 -f"
 		echo "$output_file" | grep -q "\.cpio$" && compr="cat"
 		shift
@@ -282,7 +283,7 @@ while [ $# -gt 0 ]; do
 done
 
 # If output_file is set we will generate cpio archive and compress it
-# we are carefull to delete tmp files
+# we are careful to delete tmp files
 if [ ! -z ${output_file} ]; then
 	if [ -z ${cpio_file} ]; then
 		cpio_tfile="$(mktemp ${TMPDIR:-/tmp}/cpiofile.XXXXXX)"
@@ -294,8 +295,13 @@ if [ ! -z ${output_file} ]; then
 	if [ "${is_cpio_compressed}" = "compressed" ]; then
 		cat ${cpio_tfile} > ${output_file}
 	else
-		(cat ${cpio_tfile} | ${compr}  - > ${output_file}) \
-		|| (rm -f ${output_file} ; false)
+		if [ "${compr}" = "lzma_alone" ]; then
+			cross_compile_path=`echo ${CONFIG_CROSS_COMPILER_PATH} | sed -e 's/\"//g'`
+			${cross_compile_path}/lzma_alone e ${cpio_tfile} ${output_file} -d20
+		else
+			(cat ${cpio_tfile} | ${compr}  - > ${output_file}) \
+			|| (rm -f ${output_file} ; false)
+		fi
 	fi
 	[ -z ${cpio_file} ] && rm ${cpio_tfile}
 fi

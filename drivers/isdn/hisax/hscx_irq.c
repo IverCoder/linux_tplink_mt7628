@@ -1,4 +1,4 @@
-/* $Id: hscx_irq.c,v 1.18.2.3 2004/02/11 13:21:34 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/hscx_irq.c#1 $
  *
  * low level b-channel stuff for Siemens HSCX
  *

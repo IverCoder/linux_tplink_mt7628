@@ -1,4 +1,4 @@
-/* $Id: l3ni1.c,v 2.8.2.3 2004/01/13 14:31:25 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/l3ni1.c#1 $
  *
  * NI1 D-channel protocol
  *
@@ -25,7 +25,7 @@
 #include <linux/slab.h>
 
 extern char *HiSax_getrev(const char *revision);
-static const char *ni1_revision = "$Revision: 2.8.2.3 $";
+static const char *ni1_revision = "$Revision: #1 $";
 
 #define EXT_BEARER_CAPS 1
 

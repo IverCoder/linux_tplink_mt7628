@@ -1,4 +1,4 @@
-/* $Id: bugs.h,v 1.2 2001/01/17 17:03:18 bjornw Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/include/asm/bugs.h#1 $
  *
  *  include/asm-cris/bugs.h
  *

@@ -9,7 +9,7 @@ config SND_SOC_I2C_AND_SPI
 	default y if SPI_MASTER=y
 
 config SND_SOC_ALL_CODECS
-	tristate "Build all ASoC CODEC drivers"
+	tristate 
 	select SND_SOC_L3
 	select SND_SOC_AC97_CODEC if SND_SOC_AC97_BUS
 	select SND_SOC_AD1836 if SPI_MASTER
@@ -188,99 +188,15 @@ config SND_SOC_UDA134X
 config SND_SOC_UDA1380
         tristate
 
-config SND_SOC_WM8350
-	tristate
-
-config SND_SOC_WM8400
-	tristate
-
-config SND_SOC_WM8510
-	tristate
-
-config SND_SOC_WM8523
-	tristate
-
-config SND_SOC_WM8580
-	tristate
-
-config SND_SOC_WM8711
-	tristate
-
-config SND_SOC_WM8727
-	tristate
-
-config SND_SOC_WM8728
-	tristate
-
-config SND_SOC_WM8731
-	tristate
-
-config SND_SOC_WM8741
-	tristate
-
-config SND_SOC_WM8750
-	tristate
-
-config SND_SOC_WM8753
-	tristate
-
-config SND_SOC_WM8776
-	tristate
-
-config SND_SOC_WM8900
-	tristate
-
-config SND_SOC_WM8903
-	tristate
-
-config SND_SOC_WM8904
-	tristate
-
-config SND_SOC_WM8940
-        tristate
-
-config SND_SOC_WM8955
-	tristate
-
-config SND_SOC_WM8960
-	tristate
-
-config SND_SOC_WM8961
-	tristate
-
-config SND_SOC_WM8971
-	tristate
-
-config SND_SOC_WM8974
-	tristate
-
-config SND_SOC_WM8978
-	tristate
-
-config SND_SOC_WM8988
-	tristate
-
-config SND_SOC_WM8990
-	tristate
-
-config SND_SOC_WM8993
-	tristate
-
-config SND_SOC_WM8994
-	tristate
-
-config SND_SOC_WM9081
-	tristate
-
-config SND_SOC_WM9705
-	tristate
-
-config SND_SOC_WM9712
-	tristate
-
-config SND_SOC_WM9713
-	tristate
-
+choice
+	prompt "WM Codec Support Select"
+	depends on RALINK_GDMA
+	default SND_SOC_WM8960
+	config SND_SOC_WM8750
+		bool "Build WM8750 CODEC drivers"
+	config SND_SOC_WM8960
+		bool "Build WM8960 CODEC drivers"
+endchoice
 # Amp
 config SND_SOC_MAX9877
 	tristate

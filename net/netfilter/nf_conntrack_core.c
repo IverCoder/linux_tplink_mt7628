@@ -46,7 +46,15 @@
 #include <net/netfilter/nf_nat.h>
 #include <net/netfilter/nf_nat_core.h>
 
+#if  defined(CONFIG_RA_HW_NAT) || defined(CONFIG_RA_HW_NAT_MODULE)
+#include "../nat/hw_nat/ra_nat.h"
+#endif
+
 #define NF_CONNTRACK_VERSION	"0.5.0"
+
+#if defined (CONFIG_NAT_FCONE) || defined (CONFIG_NAT_RCONE)
+extern char wan_name[IFNAMSIZ];
+#endif
 
 int (*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
 				      enum nf_nat_manip_type manip,
@@ -68,12 +76,186 @@ EXPORT_PER_CPU_SYMBOL(nf_conntrack_untracked);
 static int nf_conntrack_hash_rnd_initted;
 static unsigned int nf_conntrack_hash_rnd;
 
+/*hanjiayan added 2012-6-26 for DUT reserve local connection*/
+/*----------------hanjiayan edit  start---------------*/
+
+#define CONFIG_NF_CT_LOCAL_LIMIT 1
+#if	CONFIG_NF_CT_LOCAL_LIMIT
+/* 
+ * brief	For lan reserve connection debug
+ */
+#if 0
+#define	HJY_DBG	 printk
+#else
+#define	HJY_DBG(arg...)	do {} while(0)
+#endif
+
+/* 
+ * brief	max reserved connection
+ */
+#define	MAX_RESERVE_CONNTRACT		100
+
+/* 
+ * brief	LAN reserved connection
+ */
+#define	LOCAL_RESERVE_CONNTRACT		100
+
+/* 
+ * brief	Proc file temp  length 
+ */
+#define    PROC_TMP_LEN		128
+
+//#define INCLUDE_PCCW_SPEC	/* add by wanghao for HK PCCW spec, enable this macro manually before compiling */
+
+/* 
+ * brief	Net interface structure
+ */
+ struct netInterface{
+	const char ifName[20];
+	unsigned int ifAddr;
+};
+
+/* 
+ * brief	Net interfaces 
+ */
+static  struct netInterface ifLocalArray[] = 
+{
+	{{"br0"}, 0xFFFFFFFF},
+	{{"br1"}, 0xFFFFFFFF},
+	{{"br2"}, 0xFFFFFFFF},
+	{{"br3"}, 0xFFFFFFFF},
+	{{"br4"}, 0xFFFFFFFF},
+	/*TODO: You can add new interface here.*/
+};
+
+/*Get current net Interface numbers*/
+static int getNetInterfaceNum(void)
+{
+	return (unsigned int)(sizeof( ifLocalArray)/sizeof(struct netInterface));
+}
+/*hjy, 2012.6.26, the write net interface of conntract limit. */
+static ssize_t localConntractWriteAddr(struct file *filp,	
+									const char __user *buff,
+									unsigned long len,	
+									void *data )
+{
+	char temp[PROC_TMP_LEN] = {0, };
+	char ifName[20]  = {0, };
+	int ifNum = getNetInterfaceNum();
+	unsigned int ifAddr;
+	int index = 0;
+	int ret = 0;
+
+	ret = copy_from_user( temp, buff, len );
+	if (0 != ret) 
+	{
+		return -EFAULT;
+	}	
+		
+	sscanf(temp, "%s %u,", ifName, &ifAddr);
+
+	for(index = 0; index < ifNum; ++index)
+	{
+		if(0 == strcmp(ifName,  ifLocalArray[index].ifName))
+		{
+			 ifLocalArray[index].ifAddr = ifAddr;
+			 
+			 HJY_DBG(KERN_ERR "\033[0;40;35m Kernel: hjy, write Local Addr: "
+				" set %s ip %u.%u.%u.%u.\033[0m\n", ifName, NIPQUAD(ifAddr));	
+			 break;
+		}
+	}
+
+#ifdef HJY_DBG
+	if(index == ifNum)
+	{
+		HJY_DBG(KERN_ERR "\033[0;40;35m Kernel: hjy, write error! not find the "
+				"interface %s ip %u.%u.%u.%u.\033[0m\n", ifName, NIPQUAD(ifAddr));	
+	}
+#endif /*HJY_DBG*/
+
+	return (len);
+}
+/*hjy, 2012.6.26, the read net interface of conntract limit. */
+static int localConntractReadAddr(char* page, char** start, off_t off,
+									int count,	int *eof, void *data )
+{
+	int len = 0;
+	
+	if (off > 0) 
+	{
+		*eof = 1;
+		return 0;
+	}
+
+	/*TODO : If you add a new interface, please modify here 
+	for proc file reading.*/
+	len = sprintf(page, "%s: %u.%u.%u.%u\n"
+		"%s: %u.%u.%u.%u\n"
+		"%s: %u.%u.%u.%u\n"
+		"%s: %u.%u.%u.%u\n"
+		"%s: %u.%u.%u.%u\n",
+		ifLocalArray[0].ifName, NIPQUAD(ifLocalArray[0].ifAddr), 
+		ifLocalArray[1].ifName, NIPQUAD(ifLocalArray[1].ifAddr),
+		ifLocalArray[2].ifName, NIPQUAD(ifLocalArray[2].ifAddr),
+		ifLocalArray[3].ifName, NIPQUAD(ifLocalArray[3].ifAddr),
+		ifLocalArray[4].ifName, NIPQUAD(ifLocalArray[4].ifAddr));
+
+	return (len);
+}
+
+/*hjy, 2012.6.26, the init net interface of conntract limit. */
+int initLocalContractAddr(void)
+{
+	struct proc_dir_entry* procEntryAddr	= NULL;
+	
+	procEntryAddr = create_proc_entry("conntract_LocalAddr", 0644, init_net.proc_net);
+	if (NULL == procEntryAddr)
+	{
+		printk(KERN_ERR "\033[0;40;35mKernel: hjy, could not create a proc entry "
+							"conntract_LocalAddr.\033[0m\n");
+		return (-1);	
+	}	
+	
+	procEntryAddr->write_proc	= localConntractWriteAddr;
+	procEntryAddr->read_proc	= localConntractReadAddr;
+
+	/*Reserve local connection at initial.*/
+	nf_conntrack_max -= MAX_RESERVE_CONNTRACT;
+		
+	HJY_DBG(KERN_ERR "\033[0;40;35mKernel: hjy, proc entry loaded. reserve "
+		"local connection %d, nf_conntrack_max %d \033[0m\n", 
+		LOCAL_RESERVE_CONNTRACT, nf_conntrack_max);
+	
+	return (0);
+}
+
+/*hjy, 2012.6.26, the release net interface of conntract limit. */
+void releaseLocalContractAddr( void )
+{
+	remove_proc_entry("conntract_LocalAddr", init_net.proc_net);
+	nf_conntrack_max += MAX_RESERVE_CONNTRACT;
+	
+	HJY_DBG(KERN_ERR "\033[0;40;35mKernel: hjy, proc entry unloaded.\033[0m\n");
+}
+#endif /*CONFIG_NF_CT_LOCAL_LIMIT*/
+/*----------------hanjiayan edit  end---------------*/
+
 static u_int32_t __hash_conntrack(const struct nf_conntrack_tuple *tuple,
 				  u16 zone, unsigned int size, unsigned int rnd)
 {
 	unsigned int n;
 	u_int32_t h;
 
+#if defined (CONFIG_NAT_FCONE) /* Full Cone */
+        h = jhash((void *)tuple->dst.u3.all, sizeof(tuple->dst.u3.all),
+                    (tuple->dst.u.all << 16) | tuple->dst.protonum); //dst ip & port & protocol
+#elif defined (CONFIG_NAT_RCONE) /* Restricted Cone */
+        n = jhash((void *)tuple->src.u3.all, sizeof(tuple->src.u3.all), //src ip
+                   (tuple->src.l3num << 16));
+        h = jhash((void *)tuple->dst.u3.all, sizeof(tuple->dst.u3.all), //dst ip & dst port
+                  (tuple->dst.u.all << 16) | tuple->dst.protonum | n);
+#else
 	/* The direction must be ignored, so we hash everything up to the
 	 * destination ports (which is a multiple of 4) and treat the last
 	 * three bytes manually.
@@ -82,6 +264,7 @@ static u_int32_t __hash_conntrack(const struct nf_conntrack_tuple *tuple,
 	h = jhash2((u32 *)tuple, n,
 		   zone ^ rnd ^ (((__force __u16)tuple->dst.u.all << 16) |
 				 tuple->dst.protonum));
+#endif
 
 	return ((u64)h * size) >> 32;
 }
@@ -201,6 +384,13 @@ destroy_conntrack(struct nf_conntrack *nfct)
 	 * before connection is in the list, so we need to clean here,
 	 * too. */
 	nf_ct_remove_expectations(ct);
+
+#if defined(CONFIG_NETFILTER_XT_MATCH_LAYER7) || defined(CONFIG_NETFILTER_XT_MATCH_LAYER7_MODULE)
+	if(ct->layer7.app_proto)
+		kfree(ct->layer7.app_proto);
+	if(ct->layer7.app_data)
+	kfree(ct->layer7.app_data);
+#endif
 
 	/* We overload first tuple to link into unconfirmed list. */
 	if (!nf_ct_is_confirmed(ct)) {
@@ -328,6 +518,78 @@ begin:
 	return NULL;
 }
 EXPORT_SYMBOL_GPL(__nf_conntrack_find);
+
+/* Added by Steven Liu */
+#if defined (CONFIG_NAT_FCONE) || defined (CONFIG_NAT_RCONE)
+
+struct nf_conntrack_tuple_hash *
+	__nf_cone_conntrack_find(struct net *net, u16 zone,
+		    const struct nf_conntrack_tuple *tuple)
+{
+    struct nf_conntrack_tuple_hash *h;
+    struct hlist_nulls_node *n;
+    unsigned int hash = hash_conntrack(net, zone, tuple);
+
+    /* Disable BHs the entire time since we normally need to disable them
+     * at least once for the stats anyway.
+     */
+    local_bh_disable();
+begin:
+    hlist_nulls_for_each_entry_rcu(h, n, &net->ct.hash[hash], hnnode) {
+	if (nf_ct_cone_tuple_equal(tuple, &h->tuple) &&
+		nf_ct_zone(nf_ct_tuplehash_to_ctrack(h)) == zone) {
+	    NF_CT_STAT_INC(net, found);
+	    local_bh_enable();
+	    return h;
+	}
+	NF_CT_STAT_INC(net, searched);
+    }
+    /*
+     * if the nulls value we got at the end of this lookup is
+     * not the expected one, we must restart lookup.
+     * We probably met an item that was moved to another chain.
+     */
+    if (get_nulls_value(n) != hash) {
+	NF_CT_STAT_INC(net, search_restart);
+	goto begin;
+    }
+    local_bh_enable();
+
+    return NULL;
+
+}
+
+/* Find a connection corresponding to a tuple. */
+struct nf_conntrack_tuple_hash *
+nf_cone_conntrack_find_get(struct net *net, u16 zone,
+		      const struct nf_conntrack_tuple *tuple)
+{
+    struct nf_conntrack_tuple_hash *h;
+    struct nf_conn *ct;
+
+    rcu_read_lock();
+begin:
+    h = __nf_cone_conntrack_find(net, zone, tuple);
+    if (h) {
+	ct = nf_ct_tuplehash_to_ctrack(h);
+	if (unlikely(nf_ct_is_dying(ct) ||
+		    !atomic_inc_not_zero(&ct->ct_general.use)))
+	    h = NULL;
+	else {
+	    if (unlikely(!nf_ct_cone_tuple_equal(tuple, &h->tuple) ||
+			nf_ct_zone(ct) != zone)) {
+		nf_ct_put(ct);
+		goto begin;
+	    }
+	}
+    }
+    rcu_read_unlock();
+
+    return h;
+}
+EXPORT_SYMBOL_GPL(nf_cone_conntrack_find_get);
+
+#endif
 
 /* Find a connection corresponding to a tuple. */
 struct nf_conntrack_tuple_hash *
@@ -573,6 +835,10 @@ struct nf_conn *nf_conntrack_alloc(struct net *net, u16 zone,
 				   gfp_t gfp)
 {
 	struct nf_conn *ct;
+#if	CONFIG_NF_CT_LOCAL_LIMIT
+	int ifNum = getNetInterfaceNum();
+	int ifIndex;
+#endif /*CONFIG_NF_CT_LOCAL_LIMIT*/	
 
 	if (unlikely(!nf_conntrack_hash_rnd_initted)) {
 		get_random_bytes(&nf_conntrack_hash_rnd,
@@ -586,6 +852,34 @@ struct nf_conn *nf_conntrack_alloc(struct net *net, u16 zone,
 	if (nf_conntrack_max &&
 	    unlikely(atomic_read(&net->ct.count) > nf_conntrack_max)) {
 		unsigned int hash = hash_conntrack(net, zone, orig);
+		
+/* ---------hanjiayan added for local reserving connection,2012.6.26 start---------*/
+#if	CONFIG_NF_CT_LOCAL_LIMIT
+		for(ifIndex = 0; ifIndex < ifNum; ++ifIndex)
+		{
+			HJY_DBG(KERN_ERR "\033[0;40;32m Kernel: hjy, name %s IP %u.%u.%u.%u,"
+				"test IP:src %u.%u.%u.%u, dst %u.%u.%u.%u, nf_conntrack_count: %d.\033[0m\n",
+				ifLocalArray[ifIndex].ifName, NIPQUAD(ifLocalArray[ifIndex].ifAddr), 
+				NIPQUAD(orig->src.u3.ip), NIPQUAD(orig->dst.u3.ip), atomic_read(&net->ct.count));
+
+			/* For local interface reserve connection*/
+			if (((orig->dst.u3.ip == ifLocalArray[ifIndex].ifAddr) ||
+				(orig->src.u3.ip == ifLocalArray[ifIndex].ifAddr))&& 
+				(0xFFFFFFFF != ifLocalArray[ifIndex].ifAddr) && 
+			      	(unlikely(atomic_read(&net->ct.count) <= (nf_conntrack_max + LOCAL_RESERVE_CONNTRACT))))
+			{
+			
+				HJY_DBG(KERN_ERR "\033[0;40;35m Kernel: hjy, Local conntrack match %s, "
+					"Don't drop!\033[0m\n", ifLocalArray[ifIndex].ifName);
+				
+				goto LOCAL_OUT_LABLE;
+			}
+			/*TODO: You can add new net interface here for reserving connection*/
+			
+		}
+#endif /*CONFIG_NF_CT_LOCAL_LIMIT*/
+/* ---------hanjiayan added for local reserving connection,2012.6.26 end---------*/
+		
 		if (!early_drop(net, hash)) {
 			atomic_dec(&net->ct.count);
 			if (net_ratelimit())
@@ -595,6 +889,12 @@ struct nf_conn *nf_conntrack_alloc(struct net *net, u16 zone,
 			return ERR_PTR(-ENOMEM);
 		}
 	}
+
+/* ---------hanjiayan added for local reserving connection,2012.6.26 start---------*/
+#if	CONFIG_NF_CT_LOCAL_LIMIT	
+LOCAL_OUT_LABLE:
+#endif/*CONFIG_NF_CT_LOCAL_LIMIT*/
+/* ---------hanjiayan added for local reserving connection,2012.6.26 end---------*/
 
 	/*
 	 * Do not use kmem_cache_zalloc(), as this cache uses
@@ -764,7 +1064,67 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
 	}
 
 	/* look for tuple match */
+#if defined (CONFIG_NAT_FCONE) || defined (CONFIG_NAT_RCONE)
+        /*
+         * Based on NAT treatments of UDP in RFC3489:
+         *
+         * 1)Full Cone: A full cone NAT is one where all requests from the
+         * same internal IP address and port are mapped to the same external
+         * IP address and port.  Furthermore, any external host can send a
+         * packet to the internal host, by sending a packet to the mapped
+         * external address.
+         *
+         * 2)Restricted Cone: A restricted cone NAT is one where all requests
+         * from the same internal IP address and port are mapped to the same
+         * external IP address and port.  Unlike a full cone NAT, an external
+         * host (with IP address X) can send a packet to the internal host
+         * only if the internal host had previously sent a packet to IP
+         * address X.
+         *
+         * 3)Port Restricted Cone: A port restricted cone NAT is like a
+         * restricted cone NAT, but the restriction includes port numbers.
+         * Specifically, an external host can send a packet, with source IP
+         * address X and source port P, to the internal host only if the
+         * internal host had previously sent a packet to IP address X and
+         * port P.
+         *
+         * 4)Symmetric: A symmetric NAT is one where all requests from the
+         * same internal IP address and port, to a specific destination IP
+         * address and port, are mapped to the same external IP address and
+         * port.  If the same host sends a packet with the same source
+         * address and port, but to a different destination, a different
+         * mapping is used.  Furthermore, only the external host that
+         * receives a packet can send a UDP packet back to the internal host.
+         *
+         *
+         *
+         *
+         * Original Linux NAT type is hybrid 'port restricted cone' and
+         * 'symmetric'. XBOX certificate recommands NAT type is 'fully cone'
+         * or 'restricted cone', so i patch the linux kernel to support
+         * this feature
+         * Tradition scenario from LAN->WAN:
+         *
+         *        (LAN)     (WAN)
+         * Client------>AP---------> Server
+         * -------------> (I)
+         *              -------------->(II)
+         *              <--------------(III)
+         * <------------- (IV)
+         *
+         */
+	/* CASE III */
+
+	if( (skb->dev!=NULL) && (strcmp(skb->dev->name, wan_name)==0) && 
+	    (l4proto->l4proto == IPPROTO_UDP) ) {
+	    h = nf_cone_conntrack_find_get(net, zone, &tuple);
+        }else{ /* CASE I.II.IV */
+	    h = nf_conntrack_find_get(net, zone, &tuple);
+        }
+#else //CONFIG_NAT_LINUX
 	h = nf_conntrack_find_get(net, zone, &tuple);
+#endif
+
 	if (!h) {
 		h = init_conntrack(net, tmpl, &tuple, l3proto, l4proto,
 				   skb, dataoff);
@@ -805,6 +1165,9 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
 		struct sk_buff *skb)
 {
 	struct nf_conn *ct, *tmpl = NULL;
+#if defined(CONFIG_RA_HW_NAT) || defined(CONFIG_RA_HW_NAT_MODULE)
+	struct nf_conn_help *help;
+#endif
 	enum ip_conntrack_info ctinfo;
 	struct nf_conntrack_l3proto *l3proto;
 	struct nf_conntrack_l4proto *l4proto;
@@ -856,7 +1219,19 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
 	if (!ct) {
 		/* Not valid part of a connection */
 		NF_CT_STAT_INC_ATOMIC(net, invalid);
-		ret = NF_ACCEPT;
+		/* Add by HYY: accept IPv6 packets, 03May12 */
+		if (PF_INET6 == pf)	
+		{
+			ret = NF_ACCEPT;
+			goto out;
+		}
+		/* End Add */
+		
+		/* Modify by yangxv from WR841N, 2008.09.11
+		 * We are a NAT Router 
+		 */		
+		ret = NF_DROP;
+		//ret = NF_ACCEPT;
 		goto out;
 	}
 
@@ -882,6 +1257,18 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
 		ret = -ret;
 		goto out;
 	}
+
+#if  defined(CONFIG_RA_HW_NAT) || defined(CONFIG_RA_HW_NAT_MODULE)
+	help = nfct_help(ct);
+	if (help && help->helper) {
+            if( IS_SPACE_AVAILABLED(skb) &&
+                    ((FOE_MAGIC_TAG(skb) == FOE_MAGIC_PCI) ||
+                     (FOE_MAGIC_TAG(skb) == FOE_MAGIC_WLAN) ||
+                     (FOE_MAGIC_TAG(skb) == FOE_MAGIC_GE))){
+                    FOE_ALG(skb)=1;
+            }
+        }
+#endif
 
 	if (set_reply && !test_and_set_bit(IPS_SEEN_REPLY_BIT, &ct->status))
 		nf_conntrack_event_cache(IPCT_REPLY, ct);
@@ -1242,6 +1629,13 @@ void nf_conntrack_cleanup(struct net *net)
 		rcu_assign_pointer(nf_ct_destroy, NULL);
 		nf_conntrack_cleanup_init_net();
 	}
+
+/*hanjiayan added 2012-6-26 for DUT reserve connection*/
+/*----------------hanjiayan edit  start---------------*/
+#if	CONFIG_NF_CT_LOCAL_LIMIT
+	releaseLocalContractAddr();
+#endif /*CONFIG_NF_CT_LOCAL_LIMIT*/
+/*----------------hanjiayan edit  end---------------*/	
 }
 
 void *nf_ct_alloc_hashtable(unsigned int *sizep, int *vmalloced, int nulls)
@@ -1354,6 +1748,10 @@ static int nf_conntrack_init_init_net(void)
 		if (nf_conntrack_htable_size < 32)
 			nf_conntrack_htable_size = 32;
 
+#if defined(CONFIG_TP_MODEL_C50V3) || defined(CONFIG_TP_MODEL_C20V4) || defined(CONFIG_TP_MODEL_C20V5) \
+	|| defined(CONFIG_TP_MODEL_C50V4) || defined(CONFIG_TP_MODEL_C50V5)
+		nf_conntrack_htable_size = 2048;
+#endif
 		/* Use a max. factor of four by default to get the same max as
 		 * with the old struct list_heads. When a table size is given
 		 * we use the old value of 8 to avoid reducing the max.
@@ -1496,6 +1894,13 @@ int nf_conntrack_init(struct net *net)
 		/* Howto get NAT offsets */
 		rcu_assign_pointer(nf_ct_nat_offset, NULL);
 	}
+/*hanjiayan added 2012-6-26 for DUT reserve connection*/
+/*----------------hanjiayan edit  start---------------*/
+#if	CONFIG_NF_CT_LOCAL_LIMIT
+	initLocalContractAddr();
+#endif /*CONFIG_NF_CT_LOCAL_LIMIT*/
+/*----------------hanjiayan edit  end---------------*/
+
 	return 0;
 
 out_net:

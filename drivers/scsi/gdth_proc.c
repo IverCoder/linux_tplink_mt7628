@@ -1,5 +1,5 @@
 /* gdth_proc.c 
- * $Id: gdth_proc.c,v 1.43 2006/01/11 16:15:00 achim Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/gdth_proc.c#1 $
  */
 
 #include <linux/completion.h>

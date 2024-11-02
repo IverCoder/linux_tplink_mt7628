@@ -1,4 +1,4 @@
-/* $Id: hysdn_procconf.c,v 1.8.6.4 2001/09/23 22:24:54 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hysdn/hysdn_procconf.c#1 $
  *
  * Linux driver for HYSDN cards, /proc/net filesystem dir and conf functions.
  *
@@ -23,7 +23,7 @@
 #include "hysdn_defs.h"
 
 static DEFINE_MUTEX(hysdn_conf_mutex);
-static char *hysdn_procconf_revision = "$Revision: 1.8.6.4 $";
+static char *hysdn_procconf_revision = "$Revision: #1 $";
 
 #define INFO_OUT_LEN 80		/* length of info line including lf */
 

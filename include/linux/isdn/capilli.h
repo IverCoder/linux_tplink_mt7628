@@ -1,4 +1,4 @@
-/* $Id: capilli.h,v 1.1.2.2 2004/01/16 21:09:27 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/isdn/capilli.h#1 $
  * 
  * Kernel CAPI 2.0 Driver Interface for Linux
  * 

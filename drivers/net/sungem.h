@@ -1,4 +1,4 @@
-/* $Id: sungem.h,v 1.10.2.4 2002/03/11 08:54:48 davem Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/sungem.h#1 $
  * sungem.h: Definitions for Sun GEM ethernet driver.
  *
  * Copyright (C) 2000 David S. Miller (davem@redhat.com)

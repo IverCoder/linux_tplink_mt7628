@@ -6,7 +6,7 @@
     the GNU General Public License.
 =========================================================================*/
 
-/* $Id: nsp_debug.c,v 1.3 2003/07/26 14:21:09 elca Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/pcmcia/nsp_debug.c#1 $ */
 
 /*
  * Show the command data of a command

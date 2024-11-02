@@ -1,4 +1,4 @@
-/* $Id: strlen.S,v 1.2 2001/06/29 14:07:15 gniibe Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/sh/lib/strlen.S#1 $
  *
  * "strlen" implementation of SuperH
  *

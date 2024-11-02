@@ -1,4 +1,4 @@
-/* $Id: diva_didd.c,v 1.13.6.4 2005/02/11 19:40:25 armin Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/eicon/diva_didd.c#1 $
  *
  * DIDD Interface module for Eicon active cards.
  * 
@@ -24,7 +24,7 @@
 #include "divasync.h"
 #include "did_vers.h"
 
-static char *main_revision = "$Revision: 1.13.6.4 $";
+static char *main_revision = "$Revision: #1 $";
 
 static char *DRIVERNAME =
     "Eicon DIVA - DIDD table (http://www.melware.net)";

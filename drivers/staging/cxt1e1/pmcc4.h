@@ -1,5 +1,5 @@
 /*
- * $Id: pmcc4.h,v 1.4 2005/11/01 19:24:48 rickd PMCC4_3_1B $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/staging/cxt1e1/pmcc4.h#1 $
  */
 
 #ifndef _INC_PMCC4_H_
@@ -24,9 +24,9 @@
  * SBE, Inc.  San Ramon, California  U.S.A.
  *-----------------------------------------------------------------------------
  * RCS info:
- * RCS revision: $Revision: 1.4 $
- * Last changed on $Date: 2005/11/01 19:24:48 $
- * Changed by $Author: rickd $
+ * RCS revision: $Revision: #1 $
+ * Last changed on $Date: 2014/05/07 $
+ * Changed by $Author: red.hung $
  *-----------------------------------------------------------------------------
  * $Log: pmcc4.h,v $
  * Revision 1.4  2005/11/01 19:24:48  rickd

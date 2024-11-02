@@ -45,3 +45,17 @@ config BRIDGE_IGMP_SNOOPING
 	  Say N to exclude this support and reduce the binary size.
 
 	  If unsure, say Y.
+
+config BRIDGE_VLAN
+	bool "VLAN"
+	depends on BRIDGE
+	depends on VLAN_8021Q
+	default Y
+	---help---
+	  If you say Y here, then the Ethernet bridge will be able selectively
+	  receive and forward traffic based on VLAN information in the packet
+	  any VLAN information configured on the bridge port or bridge device.
+
+	  Say N to exclude this support and reduce the binary size.
+
+	  If unsure, say Y.

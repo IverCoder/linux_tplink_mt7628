@@ -55,7 +55,17 @@ void br_fdb_fini(void)
  */
 static inline unsigned long hold_time(const struct net_bridge *br)
 {
-	return br->topology_change ? br->forward_delay : br->ageing_time;
+		/* yangxv, 2010.5.21 */
+#if 1
+		/* Seems one timer constant in bridge code can serve several different purposes. As we use forward_delay=0,
+		if the code left unchanged, every entry in fdb will expire immidately after a topology change and every packet
+		will flood the local ports for a period of bridge_max_age. This will result in low throughput after boot up. 
+		So we decoulpe this timer from forward_delay. */
+		return br->topology_change ? (15*HZ) : br->ageing_time;
+#else
+		return br->topology_change ? br->forward_delay : br->ageing_time;
+#endif
+
 }
 
 static inline int has_expired(const struct net_bridge *br,
@@ -221,6 +231,7 @@ struct net_bridge_fdb_entry *__br_fdb_get(struct net_bridge *br,
 	struct hlist_node *h;
 	struct net_bridge_fdb_entry *fdb;
 
+	rcu_read_lock();
 	hlist_for_each_entry_rcu(fdb, h, &br->hash[br_mac_hash(addr)], hlist) {
 		if (!compare_ether_addr(fdb->addr.addr, addr)) {
 			if (unlikely(has_expired(br, fdb)))
@@ -228,11 +239,16 @@ struct net_bridge_fdb_entry *__br_fdb_get(struct net_bridge *br,
 			return fdb;
 		}
 	}
+	rcu_read_unlock();
 
 	return NULL;
 }
 
-#if defined(CONFIG_ATM_LANE) || defined(CONFIG_ATM_LANE_MODULE)
+/* export symbol for ipv6 pass through function */
+EXPORT_SYMBOL(__br_fdb_get);
+
+
+#if defined(CONFIG_ATM_LANE) || defined(CONFIG_ATM_LANE_MODULE) || defined(CONFIG_MACVLAN)
 /* Interface used by ATM LANE hook to test
  * if an addr is on some other bridge port */
 int br_fdb_test_addr(struct net_device *dev, unsigned char *addr)

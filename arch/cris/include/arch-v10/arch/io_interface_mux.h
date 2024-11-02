@@ -1,6 +1,6 @@
 /* IO interface mux allocator for ETRAX100LX.
  * Copyright 2004, Axis Communications AB
- * $Id: io_interface_mux.h,v 1.1 2004/12/13 12:21:53 starvik Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/include/arch-v10/arch/io_interface_mux.h#1 $
  */
 
 

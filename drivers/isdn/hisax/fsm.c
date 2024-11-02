@@ -1,4 +1,4 @@
-/* $Id: fsm.c,v 1.14.6.4 2001/09/23 22:24:47 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/fsm.c#1 $
  *
  * Finite state machine
  *

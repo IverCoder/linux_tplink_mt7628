@@ -1,4 +1,4 @@
-/* $Id: avmcard.h,v 1.1.4.1.2.1 2001/12/21 15:00:17 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/avm/avmcard.h#1 $
  *
  * Copyright 1999 by Carsten Paeth <calle@calle.de>
  *

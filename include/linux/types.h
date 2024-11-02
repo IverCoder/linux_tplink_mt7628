@@ -9,9 +9,9 @@
 #define DECLARE_BITMAP(name,bits) \
 	unsigned long name[BITS_TO_LONGS(bits)]
 #else
-#ifndef __EXPORTED_HEADERS__
-#warning "Attempt to use kernel headers from user space, see http://kernelnewbies.org/KernelHeaders"
-#endif /* __EXPORTED_HEADERS__ */
+//#ifndef __EXPORTED_HEADERS__
+//#warning "Attempt to use kernel headers from user space, see http://kernelnewbies.org/KernelHeaders"
+//#endif /* __EXPORTED_HEADERS__ */
 #endif
 
 #include <linux/posix_types.h>

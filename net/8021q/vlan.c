@@ -328,6 +328,17 @@ static int register_vlan_device(struct net_device *real_dev, u16 vlan_id)
 	 */
 	new_dev->mtu = real_dev->mtu;
 
+#if defined (CONFIG_RAETH_TSO)
+#if defined(CONFIG_RALINK_MT7620)                                                                                
+	if( (*(volatile u32 *)(0xB000000C) & 0xf) >= 0x5) {
+		new_dev->features = real_dev->features;
+	}
+#else
+	/* make pseudo interface has same capacity like real interface */
+	new_dev->features = real_dev->features;
+#endif
+#endif
+
 	vlan_dev_info(new_dev)->vlan_id = vlan_id;
 	vlan_dev_info(new_dev)->real_dev = real_dev;
 	vlan_dev_info(new_dev)->dent = NULL;

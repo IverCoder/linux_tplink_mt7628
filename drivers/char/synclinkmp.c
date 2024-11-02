@@ -1,5 +1,5 @@
 /*
- * $Id: synclinkmp.c,v 4.38 2005/07/15 13:29:44 paulkf Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/char/synclinkmp.c#1 $
  *
  * Device driver for Microgate SyncLink Multiport
  * high speed multiprotocol serial adapter.
@@ -476,7 +476,7 @@ module_param(debug_level, int, 0);
 module_param_array(maxframe, int, NULL, 0);
 
 static char *driver_name = "SyncLink MultiPort driver";
-static char *driver_version = "$Revision: 4.38 $";
+static char *driver_version = "$Revision: #1 $";
 
 static int synclinkmp_init_one(struct pci_dev *dev,const struct pci_device_id *ent);
 static void synclinkmp_remove_one(struct pci_dev *dev);

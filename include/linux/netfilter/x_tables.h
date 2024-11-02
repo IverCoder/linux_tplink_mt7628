@@ -91,6 +91,11 @@ struct _xt_align {
 	__u64 u64;
 };
 
+/* add by wangwenhao for massurl 2011-10-25 */	
+typedef int (*IPT_HOOK_PTR)(void __user *user, unsigned int len);
+extern IPT_HOOK_PTR ipt_ctl_hook_url;
+/* add end */
+
 #define XT_ALIGN(s) __ALIGN_KERNEL((s), __alignof__(struct _xt_align))
 
 /* Standard return verdict, or do jump. */
@@ -179,6 +184,9 @@ struct xt_counters_info {
 	             (pos)->u.match_size))
 
 #ifdef __KERNEL__
+
+#define xt_match_param xt_action_param
+#define xt_target_param xt_action_param
 
 #include <linux/netdevice.h>
 

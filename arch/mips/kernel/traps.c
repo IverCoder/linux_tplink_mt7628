@@ -1538,10 +1538,19 @@ void __cpuinit per_cpu_trap_init(void)
 	 */
 	if (cpu_has_mips_r2) {
 		cp0_compare_irq_shift = CAUSEB_TI - CAUSEB_IP;
-		cp0_compare_irq = (read_c0_intctl() >> INTCTLB_IPTI) & 7;
-		cp0_perfcount_irq = (read_c0_intctl() >> INTCTLB_IPPCI) & 7;
-		if (cp0_perfcount_irq == cp0_compare_irq)
+		if (!cpu_has_veic) {
+			cp0_compare_irq = (read_c0_intctl() >> INTCTLB_IPTI) & 7;
+			cp0_perfcount_irq = (read_c0_intctl() >> INTCTLB_IPPCI) & 7;
+			if (cp0_perfcount_irq == cp0_compare_irq)
+				cp0_perfcount_irq = -1;
+		} else {
+			/* The value of IPTI & IPPCI are not meaningful if External Interrupt Controller
+			 * Mode is enabled. The external interrupt controller is expected
+			 * to provide this information for that interrupt mode.
+			 */
+			cp0_compare_irq = CP0_LEGACY_COMPARE_IRQ;
 			cp0_perfcount_irq = -1;
+		}
 	} else {
 		cp0_compare_irq = CP0_LEGACY_COMPARE_IRQ;
 		cp0_compare_irq_shift = cp0_compare_irq;

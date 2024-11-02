@@ -1,4 +1,4 @@
-/* RCSid: $Header: /home/rickd/projects/pmcc4/include/pmcc4_ioctls.h,v 2.0 2005/09/28 00:10:09 rickd PMCC4_3_1B $
+/* RCSid: $Header: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/staging/cxt1e1/pmcc4_ioctls.h#1 $
  */
 
 #ifndef _INC_PMCC4_IOCTLS_H_
@@ -23,9 +23,9 @@
  * SBE, Inc.  San Ramon, California  U.S.A.
  *-----------------------------------------------------------------------------
  * RCS info:
- * RCS revision: $Revision: 2.0 $
- * Last changed on $Date: 2005/09/28 00:10:09 $
- * Changed by $Author: rickd $
+ * RCS revision: $Revision: #1 $
+ * Last changed on $Date: 2014/05/07 $
+ * Changed by $Author: red.hung $
  *-----------------------------------------------------------------------------
  * $Log: pmcc4_ioctls.h,v $
  * Revision 2.0  2005/09/28 00:10:09  rickd

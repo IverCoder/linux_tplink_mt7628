@@ -18,6 +18,9 @@ enum ip_conntrack_info {
 	/* >= this indicates reply direction */
 	IP_CT_IS_REPLY,
 
+	IP_CT_ESTABLISHED_REPLY = IP_CT_ESTABLISHED + IP_CT_IS_REPLY,
+	IP_CT_RELATED_REPLY = IP_CT_RELATED + IP_CT_IS_REPLY,
+	IP_CT_NEW_REPLY = IP_CT_NEW + IP_CT_IS_REPLY,	
 	/* Number of distinct IP_CT types (no NEW in reply dirn). */
 	IP_CT_NUMBER = IP_CT_IS_REPLY * 2 - 1
 };
@@ -80,6 +83,11 @@ enum ip_conntrack_status {
 	/* Conntrack is a fake untracked entry */
 	IPS_UNTRACKED_BIT = 12,
 	IPS_UNTRACKED = (1 << IPS_UNTRACKED_BIT),
+	/* Trigger, not included in offical kernel.
+	 * Make sure bit number is not overlapped with anyone above.
+	 */
+	IPS_TRIGGER_BIT = 13,
+	IPS_TRIGGER = (1 << IPS_TRIGGER_BIT),
 };
 
 /* Connection tracking event types */

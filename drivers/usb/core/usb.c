@@ -591,6 +591,100 @@ int usb_lock_device_for_reset(struct usb_device *udev,
 }
 EXPORT_SYMBOL_GPL(usb_lock_device_for_reset);
 
+
+static struct usb_device *match_device(struct usb_device *dev, u16 vendor_id, u16 product_id)
+{
+	struct usb_device *ret_dev = NULL;
+	int child;
+
+	dev_dbg(&dev->dev, "check for vendor %04x, product %04x ...\n",
+		le16_to_cpu(dev->descriptor.idVendor),
+		le16_to_cpu(dev->descriptor.idProduct));
+
+	/* see if this device matches */
+	if ((vendor_id == le16_to_cpu(dev->descriptor.idVendor)) &&
+		(product_id == le16_to_cpu(dev->descriptor.idProduct))) {
+		dev_dbg(&dev->dev, "matched this device!\n");
+		ret_dev = usb_get_dev(dev);
+		goto exit;
+	}
+
+	/* look through all of the children of this device */
+	for (child = 0; child < dev->maxchild; ++child) {
+		if (dev->children[child]) {
+			usb_lock_device(dev->children[child]);
+			ret_dev = match_device(dev->children[child], vendor_id, product_id);
+			usb_unlock_device(dev->children[child]);
+			if (ret_dev)
+				goto exit;
+		}
+	}
+exit:
+	return ret_dev;
+}
+
+/**
+ - * usb_find_device - find a specific usb device in the system
+ - * @vendor_id: the vendor id of the device to find
+ - * @product_id: the product id of the device to find
+ - *
+ - * Returns a pointer to a struct usb_device if such a specified usb
+ - * device is present in the system currently.  The usage count of the
+ - * device will be incremented if a device is found.  Make sure to call
+ - * usb_put_dev() when the caller is finished with the device.
+ - *
+ - * If a device with the specified vendor and product id is not found,
+ - * NULL is returned.
+ - */
+struct usb_device *usb_find_device(u16 vendor_id, u16 product_id)
+{
+	struct list_head *buslist;
+	struct usb_bus *bus;
+	struct usb_device *dev = NULL;
+
+	mutex_lock(&usb_bus_list_lock);
+	for (buslist = usb_bus_list.next;
+		buslist != &usb_bus_list;
+		buslist = buslist->next) {
+		bus = container_of(buslist, struct usb_bus, bus_list);
+		if (!bus->root_hub)
+			continue;
+		usb_lock_device(bus->root_hub);
+		dev = match_device(bus->root_hub, vendor_id, product_id);
+		usb_unlock_device(bus->root_hub);
+		if (dev)
+			goto exit;
+	}
+exit:
+	mutex_unlock(&usb_bus_list_lock);
+	return dev;
+}
+EXPORT_SYMBOL(usb_find_device);
+
+struct usb_device *usb_find_any_hcd(void)
+{
+	struct list_head *buslist;
+	struct usb_bus *bus;
+	struct usb_device *dev = NULL;
+
+	mutex_lock(&usb_bus_list_lock);
+	for (buslist = usb_bus_list.next;
+		buslist != &usb_bus_list;
+		buslist = buslist->next) {
+		bus = container_of(buslist, struct usb_bus, bus_list);
+		if (!bus->root_hub)
+			continue;
+		
+		dev = bus->root_hub;
+		goto exit;
+	}
+exit:
+	mutex_unlock(&usb_bus_list_lock);
+	return dev;
+}
+EXPORT_SYMBOL(usb_find_any_hcd);
+
+
 /**
  * usb_get_current_frame_number - return current bus frame number
  * @dev: the device whose bus is being queried

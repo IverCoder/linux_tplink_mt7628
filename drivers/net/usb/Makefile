@@ -7,7 +7,25 @@ obj-$(CONFIG_USB_KAWETH)	+= kaweth.o
 obj-$(CONFIG_USB_PEGASUS)	+= pegasus.o
 obj-$(CONFIG_USB_RTL8150)	+= rtl8150.o
 obj-$(CONFIG_USB_HSO)		+= hso.o
+
+ifeq ($(CONFIG_USB_NET_AX8817X),y)
+ifeq ($(CONFIG_USB_NET_AX8817X_NEW),y)
+obj-$(CONFIG_USB_NET_AX8817X_NEW)	+= asix_new.o
+else
 obj-$(CONFIG_USB_NET_AX8817X)	+= asix.o
+endif
+endif
+
+ifeq ($(CONFIG_USB_NET_AX8817X),m)
+ifeq ($(CONFIG_USB_NET_AX8817X_NEW),y)
+obj-$(CONFIG_USB_NET_AX8817X_NEW)	+= asix_new.o
+else
+obj-$(CONFIG_USB_NET_AX8817X)	+= asix.o
+endif
+endif
+
+obj-$(CONFIG_USB_NET_AX88179)	+= ax88179_178a.o
+
 obj-$(CONFIG_USB_NET_CDCETHER)	+= cdc_ether.o
 obj-$(CONFIG_USB_NET_CDC_EEM)	+= cdc_eem.o
 obj-$(CONFIG_USB_NET_DM9601)	+= dm9601.o
@@ -25,4 +43,21 @@ obj-$(CONFIG_USB_NET_INT51X1)	+= int51x1.o
 obj-$(CONFIG_USB_CDC_PHONET)	+= cdc-phonet.o
 obj-$(CONFIG_USB_IPHETH)	+= ipheth.o
 obj-$(CONFIG_USB_SIERRA_NET)	+= sierra_net.o
+
+#/*added by LY for LTE, 2014.03.06 */
+ifeq ($(CONFIG_USB_USBNET), m)
+CONFIG_USB_NET_CDC_NCM = m
+obj-$(CONFIG_USB_NET_CDC_NCM)	+= cdc_ncm.o
+
+CONFIG_USB_VL600 = m
+obj-$(CONFIG_USB_VL600)		+= lg-vl600.o
+
+CONFIG_USB_NET_CDC_ENC =m
+obj-$(CONFIG_USB_NET_CDC_ENC)	+= cdc_enc.o
+
+CONFIG_USB_QMI_WWAN =m
+obj-$(CONFIG_USB_QMI_WWAN) += qmi_wwan.o
+qmi_wwan-objs := qmi_proto.o qmi_wwan_core.o
+endif
+#/*end add by LY*/
 

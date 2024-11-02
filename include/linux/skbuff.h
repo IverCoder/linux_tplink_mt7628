@@ -29,7 +29,9 @@
 #include <linux/rcupdate.h>
 #include <linux/dmaengine.h>
 #include <linux/hrtimer.h>
-
+#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
+#include <linux/imq.h>
+#endif
 /* Don't change this without changing skb_csum_unnecessary! */
 #define CHECKSUM_NONE 0
 #define CHECKSUM_UNNECESSARY 1
@@ -330,7 +332,9 @@ struct sk_buff {
 	 * first. This is owned by whoever has the skb queued ATM.
 	 */
 	char			cb[48] __aligned(8);
-
+#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
+	void			*cb_next;
+#endif
 	unsigned long		_skb_refdst;
 #ifdef CONFIG_XFRM
 	struct	sec_path	*sp;
@@ -362,12 +366,21 @@ struct sk_buff {
 	__be16			protocol;
 
 	void			(*destructor)(struct sk_buff *skb);
+#if defined(CONFIG_RAETH_SKB_RECYCLE_2K)
+	int                     (*skb_recycling_callback)(struct sk_buff *skb);
+#endif
 #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
 	struct nf_conntrack	*nfct;
 	struct sk_buff		*nfct_reasm;
 #endif
+#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
+	struct nf_queue_entry	*nf_queue_entry;
+#endif
 #ifdef CONFIG_BRIDGE_NETFILTER
 	struct nf_bridge_info	*nf_bridge;
+#endif
+#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
+	__u8			imq_flags:IMQ_F_BITS;
 #endif
 
 	int			skb_iif;
@@ -489,7 +502,10 @@ static inline struct rtable *skb_rtable(const struct sk_buff *skb)
 {
 	return (struct rtable *)skb_dst(skb);
 }
-
+#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
+	extern int skb_save_cb(struct sk_buff *skb);
+	extern int skb_restore_cb(struct sk_buff *skb);
+#endif
 extern void kfree_skb(struct sk_buff *skb);
 extern void consume_skb(struct sk_buff *skb);
 extern void	       __kfree_skb(struct sk_buff *skb);
@@ -1429,7 +1445,13 @@ static inline int pskb_network_may_pull(struct sk_buff *skb, unsigned int len)
  * NET_IP_ALIGN(2) + ethernet_header(14) + IP_header(20/40) + ports(8)
  */
 #ifndef NET_SKB_PAD
-#define NET_SKB_PAD	max(32, L1_CACHE_BYTES)
+#if defined (CONFIG_PPPOPPTP) || defined (CONFIG_PPPOL2TP_MODULE) || defined (CONFIG_PPPOL2TP)
+#define NET_SKB_PAD		128
+#define NET_SKB_PAD_ORIG	max(32, L1_CACHE_BYTES)
+#else
+#define NET_SKB_PAD		max(32, L1_CACHE_BYTES)
+#define NET_SKB_PAD_ORIG	NET_SKB_PAD
+#endif
 #endif
 
 extern int ___pskb_trim(struct sk_buff *skb, unsigned int len);
@@ -1600,13 +1622,13 @@ static inline int __skb_cow(struct sk_buff *skb, unsigned int headroom,
 {
 	int delta = 0;
 
-	if (headroom < NET_SKB_PAD)
-		headroom = NET_SKB_PAD;
+	if (headroom < NET_SKB_PAD_ORIG)
+		headroom = NET_SKB_PAD_ORIG;
 	if (headroom > skb_headroom(skb))
 		delta = headroom - skb_headroom(skb);
 
 	if (delta || cloned)
-		return pskb_expand_head(skb, ALIGN(delta, NET_SKB_PAD), 0,
+		return pskb_expand_head(skb, ALIGN(delta, NET_SKB_PAD_ORIG), 0,
 					GFP_ATOMIC);
 	return 0;
 }
@@ -2096,6 +2118,10 @@ static inline void __nf_copy(struct sk_buff *dst, const struct sk_buff *src)
 	dst->nfct_reasm = src->nfct_reasm;
 	nf_conntrack_get_reasm(src->nfct_reasm);
 #endif
+#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
+	dst->imq_flags = src->imq_flags;
+	dst->nf_queue_entry = src->nf_queue_entry;
+#endif
 #ifdef CONFIG_BRIDGE_NETFILTER
 	dst->nf_bridge  = src->nf_bridge;
 	nf_bridge_get(src->nf_bridge);
@@ -2186,6 +2212,19 @@ static inline int skb_is_gso_v6(const struct sk_buff *skb)
 {
 	return skb_shinfo(skb)->gso_type & SKB_GSO_TCPV6;
 }
+
+#if defined(CONFIG_RAETH_SKB_RECYCLE_2K)
+struct sk_buff *skbmgr_alloc_skb2k(void);
+int skbmgr_recycling_callback(struct sk_buff *skb);
+
+static inline struct sk_buff *skbmgr_dev_alloc_skb2k(void)
+{
+        struct sk_buff *skb = skbmgr_alloc_skb2k();
+        if (likely(skb))
+                skb_reserve(skb, NET_SKB_PAD);
+        return skb;
+}
+#endif
 
 extern void __skb_warn_lro_forwarding(const struct sk_buff *skb);
 

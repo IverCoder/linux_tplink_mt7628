@@ -10,7 +10,7 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * $Id: enc28j60.c,v 1.22 2007/12/20 10:47:01 claudio Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/enc28j60.c#1 $
  */
 
 #include <linux/module.h>

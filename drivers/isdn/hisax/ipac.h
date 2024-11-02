@@ -1,4 +1,4 @@
-/* $Id: ipac.h,v 1.7.2.2 2004/01/12 22:52:26 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/ipac.h#1 $
  *
  * IPAC specific defines
  *

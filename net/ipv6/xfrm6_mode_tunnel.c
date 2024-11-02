@@ -17,6 +17,11 @@
 #include <net/ipv6.h>
 #include <net/xfrm.h>
 
+#if defined (CONFIG_RALINK_HWCRYPTO) || defined (CONFIG_RALINK_HWCRYPTO_MODULE)
+#include <net/esp.h>
+#include <linux/crypto.h>
+#endif
+
 static inline void ipip6_ecn_decapsulate(struct sk_buff *skb)
 {
 	struct ipv6hdr *outer_iph = ipv6_hdr(skb);
@@ -36,7 +41,32 @@ static int xfrm6_mode_tunnel_output(struct xfrm_state *x, struct sk_buff *skb)
 	struct ipv6hdr *top_iph;
 	int dsfield;
 
+#if defined (CONFIG_RALINK_HWCRYPTO) || defined (CONFIG_RALINK_HWCRYPTO_MODULE)
+	if (x->type->proto==IPPROTO_ESP)
+	{
+		struct esp_data *esp;
+		int header_len;
+
+		esp = x->data;
+		if (!esp)
+		{
+			printk("%s: esp is NULL\n", __FUNCTION__);
+			return -EPERM;
+		}
+
+		header_len = (x->props.header_len) - (sizeof(struct ip_esp_hdr) +  crypto_aead_ivsize(esp->aead));
+		if (header_len < 0)
+		{
+			printk("%s: Wrong value for header_len:%d\n", __FUNCTION__, header_len);
+			return -EPERM;
+		}
+		skb_set_network_header(skb, -header_len);
+	}
+	else
+#endif
 	skb_set_network_header(skb, -x->props.header_len);
+	
+	
 	skb->mac_header = skb->network_header +
 			  offsetof(struct ipv6hdr, nexthdr);
 	skb->transport_header = skb->network_header + sizeof(*top_iph);

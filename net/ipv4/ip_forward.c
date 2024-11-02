@@ -76,8 +76,42 @@ int ip_forward(struct sk_buff *skb)
 	 *	that reaches zero, we must reply an ICMP control message telling
 	 *	that the packet's lifetime expired.
 	 */
-	if (ip_hdr(skb)->ttl <= 1)
-		goto too_many_hops;
+#if 0	 
+			if (ip_hdr(skb)->ttl <= 1)
+				goto too_many_hops;
+#endif
+		
+			/* ZJin100409, do forward wan2lan pkts whos ttl <=1 */	
+		
+			/* __dev_get_by_index(skb->iif)->name is eth2(physical), 
+			 * skb->dev->name is br0 or ppp0 etc. yangxv
+			 */
+#define RECOVER_TTL 	(64)
+			if (ip_hdr(skb)->ttl <= 1)
+			{
+		
+				/*if (!strcmp(skb->input_dev->name, "eth1") 
+					|| !strcmp(skb->input_dev->name, "eth2") 
+					|| !strcmp(skb->input_dev->name, "ppp0"))*/
+				iph = ip_hdr(skb);
+		
+				/* prefix match */
+				if (strncmp(skb->dev->name, "br", strlen("br")))
+				{
+		
+					iph->ttl = RECOVER_TTL; /* set ttl back to 64 */
+		
+					/* re calc csum. */
+					iph->check = 0;
+					iph->check = ip_fast_csum(skb_network_header(skb), iph->ihl);
+				}
+				else
+				{
+					goto too_many_hops;
+				}
+			}
+			/* end modify */
+
 
 	if (!xfrm4_route_forward(skb))
 		goto drop;
@@ -110,7 +144,16 @@ int ip_forward(struct sk_buff *skb)
 	if (rt->rt_flags&RTCF_DOREDIRECT && !opt->srr && !skb_sec_path(skb))
 		ip_rt_send_redirect(skb);
 
-	skb->priority = rt_tos2priority(iph->tos);
+	/*
+         * 1.In general case, we use DSCP to stand for different priority not tos.
+         * 2.To make sure vlan priority is the same in rx/tx packet
+         * FIXME - Steven
+         */
+#if !defined (CONFIG_RA_NAT_HW)
+        if(iph->tos != 0) {
+            skb->priority = rt_tos2priority(iph->tos);
+        }
+#endif
 
 	return NF_HOOK(NFPROTO_IPV4, NF_INET_FORWARD, skb, skb->dev,
 		       rt->dst.dev, ip_forward_finish);

@@ -359,7 +359,7 @@ void __snd_printk(unsigned int level, const char *file, int line,
  * Ignored when CONFIG_SND_DEBUG is not set.
  */
 #define snd_printd(fmt, args...) \
-	__snd_printk(1, __FILE__, __LINE__, fmt, ##args)
+	__snd_printk(0, __FILE__, __LINE__, fmt, ##args)
 
 /**
  * snd_BUG - give a BUG warning message and stack trace
@@ -407,7 +407,7 @@ static inline int __snd_bug_on(int cond)
  * Ignored when CONFIG_SND_DEBUG_VERBOSE is not set.
  */
 #define snd_printdd(format, args...) \
-	__snd_printk(2, __FILE__, __LINE__, format, ##args)
+	__snd_printk(0, __FILE__, __LINE__, format, ##args)
 #else
 #define snd_printdd(format, args...)	do { } while (0)
 #endif

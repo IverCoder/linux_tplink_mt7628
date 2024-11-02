@@ -1,4 +1,4 @@
-#define RCS_ID "$Id: scc.c,v 1.75 1998/11/04 15:15:01 jreuter Exp jreuter $"
+#define RCS_ID "$Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/hamradio/scc.c#1 $"
 
 #define VERSION "3.0"
 

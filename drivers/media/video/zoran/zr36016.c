@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2001 Wolfgang Scherr <scherr@net4you.at>
  *
- * $Id: zr36016.c,v 1.1.2.14 2003/08/20 19:46:55 rbultje Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/media/video/zoran/zr36016.c#1 $
  *
  * ------------------------------------------------------------------------
  *

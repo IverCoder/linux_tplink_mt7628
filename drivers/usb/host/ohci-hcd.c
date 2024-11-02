@@ -1056,6 +1056,11 @@ MODULE_LICENSE ("GPL");
 #define PLATFORM_DRIVER		usb_hcd_pnx4008_driver
 #endif
 
+#if defined (CONFIG_RT3XXX_OHCI) || defined (CONFIG_RT3XXX_OHCI_MODULE)
+#include "ohci-rt3xxx.c"
+#define PLATFORM_DRIVER     ohci_hcd_rt3xxx_driver
+#endif
+
 #ifdef CONFIG_ARCH_DAVINCI_DA8XX
 #include "ohci-da8xx.c"
 #define PLATFORM_DRIVER		ohci_hcd_da8xx_driver

@@ -1,6 +1,6 @@
 #ifndef _AHA1542_H
 
-/* $Id: aha1542.h,v 1.1 1992/07/24 06:27:38 root Exp root $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aha1542.h#1 $
  *
  * Header file for the adaptec 1542 driver for Linux
  *

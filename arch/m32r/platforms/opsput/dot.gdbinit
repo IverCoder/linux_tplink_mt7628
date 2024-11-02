@@ -1,5 +1,5 @@
 # .gdbinit file
-# $Id: dot.gdbinit,v 1.1 2004/07/27 06:54:20 sakugawa Exp $
+# $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/m32r/platforms/opsput/dot.gdbinit#1 $
 
 # setting
 set width 0d70

@@ -25,6 +25,12 @@
 
 #include "br_private.h"
 
+/* add by wanghao  */
+#ifdef CONFIG_ACTIVE_FLOW_CONTROL
+#include <linux/sched_optimize.h>
+#endif
+/* add end  */
+
 /*
  * Determine initial path cost based on speed.
  * using recommendations from 802.1d standard
@@ -272,6 +278,11 @@ static struct net_bridge_port *new_nbp(struct net_bridge *br,
 	p->flags = 0;
 	br_init_port(p);
 	p->state = BR_STATE_DISABLED;
+
+#ifdef CONFIG_BRIDGE_VLAN
+	p->vlan_id = 0;
+#endif
+
 	br_stp_port_timer_init(p);
 	br_multicast_add_port(p);
 
@@ -307,6 +318,16 @@ int br_add_bridge(struct net *net, const char *name)
 	ret = br_sysfs_addbr(dev);
 	if (ret)
 		unregister_netdevice(dev);
+
+	/* add by wanghao  */
+#ifdef CONFIG_ACTIVE_FLOW_CONTROL
+	if (strncmp(name, "br0", 3) == 0)//different model has different bridge name.
+	{
+		br_dev = dev;
+	}
+#endif
+	/* add end  */
+	
  out:
 	rtnl_unlock();
 	return ret;

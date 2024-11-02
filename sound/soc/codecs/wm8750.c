@@ -36,7 +36,11 @@
  * are using 2 wire for device control, so we cache them instead.
  */
 static const u16 wm8750_reg[] = {
+#if defined(CONFIG_SND_RALINK_SOC)
+	0x002f, 0x002f, 0x0079, 0x0079,  /*  0 */
+#else
 	0x0097, 0x0097, 0x0079, 0x0079,  /*  0 */
+#endif
 	0x0000, 0x0008, 0x0000, 0x000a,  /*  4 */
 	0x0000, 0x0000, 0x00ff, 0x00ff,  /*  8 */
 	0x000f, 0x000f, 0x0000, 0x0000,  /* 12 */
@@ -56,7 +60,15 @@ struct wm8750_priv {
 	u16 reg_cache[ARRAY_SIZE(wm8750_reg)];
 };
 
+#if defined(CONFIG_SND_RALINK_SOC)
+#define wm8750_reset(c)	do{ \
+	int i = 0;\
+	snd_soc_write(c, WM8750_RESET, 0);\
+	for(i = 0; i < 1000*HZ; i++);\
+	}while(0)
+#else
 #define wm8750_reset(c)	snd_soc_write(c, WM8750_RESET, 0)
+#endif
 
 /*
  * WM8750 Controls
@@ -616,6 +628,42 @@ static int wm8750_set_bias_level(struct snd_soc_codec *codec,
 	case SND_SOC_BIAS_PREPARE:
 		break;
 	case SND_SOC_BIAS_STANDBY:
+#if defined(CONFIG_SND_RALINK_SOC)
+#if defined(CONFIG_I2S_MS_MODE)
+		snd_soc_dai_set_fmt(codec->dai,SND_SOC_DAIFMT_CBS_CFS|SND_SOC_DAIFMT_I2S|SND_SOC_DAIFMT_NB_NF);
+#else
+		snd_soc_dai_set_fmt(codec->dai,SND_SOC_DAIFMT_CBM_CFM|SND_SOC_DAIFMT_I2S|SND_SOC_DAIFMT_NB_NF);
+#endif
+		/* set vmid to 50k and unmute dac */
+		snd_soc_write(codec, WM8750_PWR1, pwr_reg | 0x00c0);
+	//3. Enable DACs as required.
+	snd_soc_write(codec, WM8750_PWR2, (1<<8)|(1<<7)|(1<<6)|(1<<5));
+	/* 4. Enable line and / or headphone output buffers as required. */
+	snd_soc_write(codec,WM8750_ADCTL1, (1 << 0) | (0 << 4) | (3 << 6));
+
+	snd_soc_write(codec,WM8750_ADCTL2, (1 << 2));
+
+	snd_soc_write(codec,WM8750_ADCTL3,(((0) & 0x3) << 7));
+
+	snd_soc_write(codec,WM8750_ROUTM1,0);
+
+	snd_soc_write(codec,WM8750_LOUTM2,0);
+
+	snd_soc_write(codec,WM8750_ROUTM2, (1 << 8));
+	snd_soc_write(codec,WM8750_MOUTM1, 0);
+	snd_soc_write(codec,WM8750_MOUTM2, 0);
+	snd_soc_write(codec,WM8750_ADCDAC, (1 << 0));
+
+	/*Set Input Level*/
+	//snd_soc_write(codec,WM8750_LINVOL, 0x100);
+	//snd_soc_write(codec,WM8750_RINVOL, 0x100);
+
+	snd_soc_write(codec,WM8750_ALC1, 0);
+	snd_soc_write(codec,WM8750_NGATE, 0x03);
+
+	snd_soc_write(codec,WM8750_LADCIN,(0x0 << 6));
+	snd_soc_write(codec,WM8750_RADCIN, (0x0 << 6));
+#else
 		if (codec->bias_level == SND_SOC_BIAS_OFF) {
 			/* Set VMID to 5k */
 			snd_soc_write(codec, WM8750_PWR1, pwr_reg | 0x01c1);
@@ -626,6 +674,7 @@ static int wm8750_set_bias_level(struct snd_soc_codec *codec,
 
 		/* mute dac and set vmid to 500k, enable VREF */
 		snd_soc_write(codec, WM8750_PWR1, pwr_reg | 0x0141);
+#endif
 		break;
 	case SND_SOC_BIAS_OFF:
 		snd_soc_write(codec, WM8750_PWR1, 0x0001);
@@ -692,8 +741,11 @@ static int wm8750_resume(struct platform_device *pdev)
 		data[1] = cache[i] & 0x00ff;
 		codec->hw_write(codec->control_data, data, 2);
 	}
-
+#if defined(CONFIG_SND_RALINK_SOC)
+	wm8750_set_bias_level(codec, SND_SOC_BIAS_ON);
+#else
 	wm8750_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
+#endif
 
 	return 0;
 }
@@ -787,15 +839,21 @@ static int wm8750_register(struct wm8750_priv *wm8750,
 		printk(KERN_ERR "wm8750: failed to set cache I/O: %d\n", ret);
 		goto err;
 	}
-
+#if defined(CONFIG_SND_RALINK_SOC)
+	wm8750_reset(codec);
+#else
 	ret = wm8750_reset(codec);
 	if (ret < 0) {
 		printk(KERN_ERR "wm8750: failed to reset: %d\n", ret);
 		goto err;
 	}
-
+#endif
+#if defined(CONFIG_SND_RALINK_SOC)
 	/* charge output caps */
+	wm8750_set_bias_level(codec, SND_SOC_BIAS_ON);
+#else
 	wm8750_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
+#endif
 
 	/* set the update bits */
 	reg = snd_soc_read(codec, WM8750_LDAC);
@@ -871,8 +929,11 @@ static int wm8750_i2c_probe(struct i2c_client *i2c,
 	i2c_set_clientdata(i2c, wm8750);
 
 	codec->dev = &i2c->dev;
-
+#if defined(CONFIG_SND_RALINK_SOC)
+	return wm8750_register(wm8750, SND_SOC_CUSTOM);
+#else
 	return wm8750_register(wm8750, SND_SOC_I2C);
+#endif
 }
 
 static int wm8750_i2c_remove(struct i2c_client *client)

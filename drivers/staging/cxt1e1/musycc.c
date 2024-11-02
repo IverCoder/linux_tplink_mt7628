@@ -1,5 +1,5 @@
 /*
- * $Id: musycc.c,v 2.1 2007/08/15 23:32:17 rickd PMCC4_3_1B $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/staging/cxt1e1/musycc.c#1 $
  */
 
 unsigned int max_intcnt = 0;
@@ -25,9 +25,9 @@ unsigned int max_bh = 0;
  * One Stop Systems, Inc.  Escondido, California  U.S.A.
  *-----------------------------------------------------------------------------
  * RCS info:
- * RCS revision: $Revision: 2.1 $
- * Last changed on $Date: 2007/08/15 23:32:17 $
- * Changed by $Author: rickd $
+ * RCS revision: $Revision: #1 $
+ * Last changed on $Date: 2014/05/07 $
+ * Changed by $Author: red.hung $
  *-----------------------------------------------------------------------------
  * $Log: musycc.c,v $
  * Revision 2.1  2007/08/15 23:32:17  rickd
@@ -69,7 +69,7 @@ unsigned int max_bh = 0;
  */
 
 char        SBEid_pmcc4_musyccc[] =
-"@(#)musycc.c - $Revision: 2.1 $      (c) Copyright 2004-2006 SBE, Inc.";
+"@(#)musycc.c - $Revision: #1 $      (c) Copyright 2004-2006 SBE, Inc.";
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 

@@ -3,7 +3,7 @@
 /*
  * Definitions for tcp compression routines.
  *
- * $Header: slcompress.h,v 1.10 89/12/31 08:53:02 van Exp $
+ * $Header: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/net/slhc_vj.h#1 $
  *
  * Copyright (c) 1989 Regents of the University of California.
  * All rights reserved.

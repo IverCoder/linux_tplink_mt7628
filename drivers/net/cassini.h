@@ -1,4 +1,4 @@
-/* $Id: cassini.h,v 1.16 2004/08/17 21:15:16 zaumen Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/cassini.h#1 $
  * cassini.h: Definitions for Sun Microsystems Cassini(+) ethernet driver.
  *
  * Copyright (C) 2004 Sun Microsystems Inc.

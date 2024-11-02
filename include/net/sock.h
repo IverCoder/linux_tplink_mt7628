@@ -1161,7 +1161,7 @@ extern void sock_init_data(struct socket *sock, struct sock *sk);
  *
  *	Remove a filter from a socket and release its resources.
  */
-
+#ifdef CONFIG_NET_SK_FILTER
 static inline void sk_filter_release(struct sk_filter *fp)
 {
 	if (atomic_dec_and_test(&fp->refcnt))
@@ -1181,6 +1181,12 @@ static inline void sk_filter_charge(struct sock *sk, struct sk_filter *fp)
 	atomic_inc(&fp->refcnt);
 	atomic_add(sk_filter_len(fp), &sk->sk_omem_alloc);
 }
+#else
+#define sk_filter_release(a)
+#define sk_filter_uncharge(a, b)
+#define sk_filter_charge(a, b)
+#define sk_filter(a, b) (0)
+#endif
 
 /*
  * Socket reference counting postulates.

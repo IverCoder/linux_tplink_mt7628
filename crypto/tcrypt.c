@@ -29,6 +29,9 @@
 #include "tcrypt.h"
 #include "internal.h"
 
+#if defined (CONFIG_CRYPTO_DEV_MTK_AES) || defined (CONFIG_CRYPTO_DEV_MTK_AES_MODULE)
+#define CONFIG_CRYPTO_DEV_MTK_AES_DBG	1
+#endif
 /*
  * Need slab memory for testing (size in number of pages).
  */
@@ -43,11 +46,18 @@
 /*
  * Used by test_cipher_speed()
  */
+#if defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)
+static unsigned int sec = 0;
+static char *alg = NULL;
+static u32 type = 0;
+static u32 mask = 0 ;
+#else
 static unsigned int sec;
-
 static char *alg = NULL;
 static u32 type;
 static u32 mask;
+#endif
+
 static int mode;
 static char *tvmem[TVMEMSIZE];
 
@@ -59,6 +69,50 @@ static char *check[] = {
 	"camellia", "seed", "salsa20", "rmd128", "rmd160", "rmd256", "rmd320",
 	"lzo", "cts", "zlib", NULL
 };
+/*
+* No traps on overflows for any of these...
+*/
+#if defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)
+
+#define uint32 u32
+#define get_cycles read_c0_count
+IMPORT_SYMBOL(mips_cpu_feq);
+extern u32 mips_cpu_feq;
+
+static unsigned long GetDeltaTime(unsigned long cur_cyc, unsigned long prev_cyc)
+{
+	unsigned long delta;
+	
+#if defined(CONFIG_RALINK_EXTERNAL_TIMER)
+	if(prev_cyc <= cur_cyc)
+		delta = (cur_cyc - prev_cyc)*20;
+	else
+		delta = (0x010000 - (prev_cyc - cur_cyc))*20;
+#else
+	if(prev_cyc <= cur_cyc)
+		delta = (cur_cyc - prev_cyc)/((mips_cpu_feq>>1)/(1000));
+	else
+		delta = (0xFFFFFFFF - (prev_cyc - cur_cyc))/((mips_cpu_feq>>1)/(1000));
+#endif
+	return delta;	
+	
+}
+
+static unsigned long GetMicroDeltaTime(unsigned long cur_cyc, unsigned long prev_cyc)
+{
+	unsigned long delta;
+	
+#if defined(CONFIG_RALINK_EXTERNAL_TIMER)
+#else
+	if(prev_cyc <= cur_cyc)
+		delta = (cur_cyc - prev_cyc)/((mips_cpu_feq>>1)/(1000*1000));
+	else
+		delta = (0xFFFFFFFF - (prev_cyc - cur_cyc))/((mips_cpu_feq>>1)/(1000*1000));
+#endif
+	return delta;	
+	
+}
+#endif
 
 static int test_cipher_jiffies(struct blkcipher_desc *desc, int enc,
 			       struct scatterlist *sg, int blen, int sec)
@@ -89,6 +143,11 @@ static int test_cipher_cycles(struct blkcipher_desc *desc, int enc,
 	unsigned long cycles = 0;
 	int ret = 0;
 	int i;
+	int totallen = 0;
+	int j;
+
+	for (j = 0; j < TVMEMSIZE; j++)
+		totallen += (sg+j)->length;
 
 	local_bh_disable();
 	local_irq_disable();
@@ -117,8 +176,11 @@ static int test_cipher_cycles(struct blkcipher_desc *desc, int enc,
 
 		if (ret)
 			goto out;
-
+#if defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)
+		cycles += GetMicroDeltaTime(end, start);
+#else
 		cycles += end - start;
+#endif		
 	}
 
 out:
@@ -126,9 +188,13 @@ out:
 	local_bh_enable();
 
 	if (ret == 0)
+#if defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)
+		printk("1 operation in %lu usec (%d bytes)\n",
+		       (cycles + 4) / 8, totallen);
+#else		
 		printk("1 operation in %lu cycles (%d bytes)\n",
 		       (cycles + 4) / 8, blen);
-
+#endif
 	return ret;
 }
 
@@ -164,7 +230,9 @@ static void test_cipher_speed(const char *algo, int enc, unsigned int sec,
 
 	i = 0;
 	do {
-
+#if defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)
+		int totallen = 0;
+#endif		
 		b_size = block_sizes;
 		do {
 			struct scatterlist sg[TVMEMSIZE];
@@ -198,13 +266,23 @@ static void test_cipher_speed(const char *algo, int enc, unsigned int sec,
 			}
 
 			sg_init_table(sg, TVMEMSIZE);
+			
+#if defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)
+			//sg_set_buf(sg, tvmem[0] + *keysize,
+			//	    ((*b_size<PAGE_SIZE) ? *b_size : PAGE_SIZE) - *keysize);
+			for (j = 0; j < TVMEMSIZE; j++) {
+				sg_set_buf(sg + j, tvmem[j], (*b_size<PAGE_SIZE) ? *b_size : PAGE_SIZE);	
+				memset (tvmem[j], 0xff, (*b_size<PAGE_SIZE) ? *b_size : PAGE_SIZE);
+				totallen +=(*b_size<PAGE_SIZE) ? *b_size : PAGE_SIZE;
+			}
+#else
 			sg_set_buf(sg, tvmem[0] + *keysize,
 				   PAGE_SIZE - *keysize);
 			for (j = 1; j < TVMEMSIZE; j++) {
 				sg_set_buf(sg + j, tvmem[j], PAGE_SIZE);
 				memset (tvmem[j], 0xff, PAGE_SIZE);
 			}
-
+#endif
 			iv_len = crypto_blkcipher_ivsize(tfm);
 			if (iv_len) {
 				memset(&iv, 0xff, iv_len);
@@ -217,7 +295,6 @@ static void test_cipher_speed(const char *algo, int enc, unsigned int sec,
 			else
 				ret = test_cipher_cycles(&desc, enc, sg,
 							 *b_size);
-
 			if (ret) {
 				printk("%s() failed flags=%x\n", e, desc.flags);
 				break;
@@ -313,8 +390,11 @@ static int test_hash_cycles_digest(struct hash_desc *desc,
 			goto out;
 
 		end = get_cycles();
-
+#if defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)		
+		cycles+=GetMicroDeltaTime(end, start);
+#else		
 		cycles += end - start;
+#endif		
 	}
 
 out:
@@ -324,9 +404,12 @@ out:
 	if (ret)
 		return ret;
 
+#if defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)
+	printk("1 operation in %lu usec (%d bytes)\n", (cycles)/8, blen);
+#else
 	printk("%6lu cycles/operation, %4lu cycles/byte\n",
 	       cycles / 8, cycles / (8 * blen));
-
+#endif
 	return 0;
 }
 
@@ -746,10 +829,10 @@ static int do_test(int m)
 		break;
 
 	case 1:
-		ret += tcrypt_test("md5");
+		ret += tcrypt_test("md5");	
 		break;
 
-	case 2:
+	case 2:						
 		ret += tcrypt_test("sha1");
 		break;
 
@@ -788,10 +871,12 @@ static int do_test(int m)
 	case 10:
 		ret += tcrypt_test("ecb(aes)");
 		ret += tcrypt_test("cbc(aes)");
+#if !defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)		
 		ret += tcrypt_test("lrw(aes)");
 		ret += tcrypt_test("xts(aes)");
 		ret += tcrypt_test("ctr(aes)");
 		ret += tcrypt_test("rfc3686(ctr(aes))");
+#endif		
 		break;
 
 	case 11:
@@ -989,6 +1074,7 @@ static int do_test(int m)
 				speed_template_16_24_32);
 		test_cipher_speed("cbc(aes)", DECRYPT, sec, NULL, 0,
 				speed_template_16_24_32);
+#if !defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)
 		test_cipher_speed("lrw(aes)", ENCRYPT, sec, NULL, 0,
 				speed_template_32_40_48);
 		test_cipher_speed("lrw(aes)", DECRYPT, sec, NULL, 0,
@@ -997,6 +1083,7 @@ static int do_test(int m)
 				speed_template_32_48_64);
 		test_cipher_speed("xts(aes)", DECRYPT, sec, NULL, 0,
 				speed_template_32_48_64);
+#endif
 		break;
 
 	case 201:
@@ -1249,7 +1336,10 @@ static int __init tcrypt_mod_init(void)
 		printk(KERN_ERR "tcrypt: one or more tests failed!\n");
 		goto err_free_tv;
 	}
-
+#if defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)	
+	else
+		printk("tcrypt: test passed!\n");
+#endif	
 	/* We intentionaly return -EAGAIN to prevent keeping the module,
 	 * unless we're running in fips mode. It does all its work from
 	 * init() and doesn't offer any runtime functionality, but in
@@ -1257,8 +1347,10 @@ static int __init tcrypt_mod_init(void)
 	 * => we don't need it in the memory, do we?
 	 *                                        -- mludvig
 	 */
+#if !defined (CONFIG_CRYPTO_DEV_MTK_AES_DBG)
 	if (!fips_enabled)
 		err = -EAGAIN;
+#endif
 
 err_free_tv:
 	for (i = 0; i < TVMEMSIZE && tvmem[i]; i++)

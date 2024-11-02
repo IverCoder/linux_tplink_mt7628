@@ -1,4 +1,4 @@
-/* $Id: icc.c,v 1.8.2.3 2004/01/13 14:31:25 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/icc.c#1 $
  *
  * ICC specific routines
  *

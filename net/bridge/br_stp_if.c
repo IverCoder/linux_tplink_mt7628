@@ -211,16 +211,39 @@ void br_stp_recalculate_bridge_id(struct net_bridge *br)
 	const unsigned char *addr = br_mac_zero;
 	struct net_bridge_port *p;
 
+	/* changed by yangxv, 2012.3 
+	 * assume eth* has the same mac address
+	 */
+	const unsigned char *eth0_addr = br_mac_zero;
+
 	/* user has chosen a value so keep it */
 	if (br->flags & BR_SET_MAC_ADDR)
 		return;
 
 	list_for_each_entry(p, &br->port_list, list) {
-		if (addr == br_mac_zero ||
-		    memcmp(p->dev->dev_addr, addr, ETH_ALEN) < 0)
-			addr = p->dev->dev_addr;
+				if (!strncmp(p->dev->name, "eth", strlen("eth"))) /* record eth*'s mac */
+				{
+					eth0_addr = p->dev->dev_addr;
+				}
+				
+				if (addr == br_mac_zero ||
+					memcmp(p->dev->dev_addr, addr, ETH_ALEN) > 0)
+					addr = p->dev->dev_addr;
+			}
+		
+			if (eth0_addr != br_mac_zero)	/* if eth* exists, use eth*'s mac */
+				addr = eth0_addr;
+			/* no eth*, use the max one */
+#if 0
+			list_for_each_entry(p, &br->port_list, list) {
+				if (addr == br_mac_zero ||
+					memcmp(p->dev->dev_addr, addr, ETH_ALEN) < 0)
+					addr = p->dev->dev_addr;
+		
+			}
+#endif
+			/* end changed */
 
-	}
 
 	if (compare_ether_addr(br->bridge_id.addr, addr))
 		br_stp_change_bridge_id(br, addr);

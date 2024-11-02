@@ -1,4 +1,4 @@
-/* $Id: tg3.h,v 1.37.2.32 2002/03/11 12:18:18 davem Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/tg3.h#1 $
  * tg3.h: Definitions for Broadcom Tigon3 ethernet driver.
  *
  * Copyright (C) 2001, 2002, 2003, 2004 David S. Miller (davem@redhat.com)

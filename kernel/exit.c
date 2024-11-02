@@ -56,6 +56,13 @@
 #include <asm/pgtable.h>
 #include <asm/mmu_context.h>
 
+/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+#include <linux/sched_optimize.h>
+#endif
+/* add end  */
+
+
 static void exit_mm(struct task_struct * tsk);
 
 static void __unhash_process(struct task_struct *p, bool group_dead)
@@ -906,6 +913,12 @@ NORET_TYPE void do_exit(long code)
 	tracehook_report_exit(&code);
 
 	validate_creds_for_do_exit(tsk);
+
+	/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+	cleanExitWaitTask(tsk);
+#endif
+	/* add end  */
 
 	/*
 	 * We're taking recursive faults here in do_exit. Safest is to just

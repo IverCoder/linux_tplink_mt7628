@@ -1,4 +1,4 @@
-/* $Id: io.c,v 1.5 2004/02/22 23:08:43 kkojima Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/sh/boards/mach-se/7206/io.c#1 $
  *
  * linux/arch/sh/boards/se/7206/io.c
  *

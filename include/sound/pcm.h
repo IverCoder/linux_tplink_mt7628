@@ -124,6 +124,10 @@ struct snd_pcm_ops {
 #define SNDRV_PCM_RATE_96000		(1<<10)		/* 96000Hz */
 #define SNDRV_PCM_RATE_176400		(1<<11)		/* 176400Hz */
 #define SNDRV_PCM_RATE_192000		(1<<12)		/* 192000Hz */
+#ifdef CONFIG_SND_RALINK_SOC
+#define SNDRV_PCM_RATE_12000	(1<<13)		/* 12000Hz */
+#define SNDRV_PCM_RATE_24000	(1<<14)		/* 12000Hz */
+#endif
 
 #define SNDRV_PCM_RATE_CONTINUOUS	(1<<30)		/* continuous range */
 #define SNDRV_PCM_RATE_KNOT		(1<<31)		/* supports more non-continuos rates */

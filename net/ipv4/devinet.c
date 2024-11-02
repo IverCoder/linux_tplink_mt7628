@@ -63,6 +63,12 @@
 #include <net/rtnetlink.h>
 #include <net/net_namespace.h>
 
+/* add by wanghao  */
+#ifdef CONFIG_ACTIVE_FLOW_CONTROL
+#include <linux/sched_optimize.h>
+#endif
+/* add end  */
+
 static struct ipv4_devconf ipv4_devconf = {
 	.data = {
 		[IPV4_DEVCONF_ACCEPT_REDIRECTS - 1] = 1,
@@ -743,6 +749,15 @@ int devinet_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 		}
 
 		ifa->ifa_address = ifa->ifa_local = sin->sin_addr.s_addr;
+
+		/* add by wanghao, get local ip address  */
+	#ifdef CONFIG_ACTIVE_FLOW_CONTROL
+		if (br_dev != NULL && dev == br_dev) 
+		{
+			localIpAddr = ntohl(ifa->ifa_local);
+		}
+	#endif
+		/* add end  */
 
 		if (!(dev->flags & IFF_POINTOPOINT)) {
 			ifa->ifa_prefixlen = inet_abc_len(ifa->ifa_address);

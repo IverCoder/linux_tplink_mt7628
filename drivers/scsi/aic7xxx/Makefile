@@ -1,7 +1,7 @@
 #
 # Makefile for the Linux aic7xxx SCSI driver.
 #
-# $Id: //depot/linux-aic79xx-2.5.0/drivers/scsi/aic7xxx/Makefile#8 $
+# $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aic7xxx/Makefile#1 $
 #
 
 # Let kbuild descend into aicasm when cleaning

@@ -188,6 +188,10 @@ int __nf_nat_mangle_tcp_packet(struct sk_buff *skb,
 	tcph = (void *)iph + iph->ihl*4;
 
 	oldlen = skb->len - iph->ihl*4;
+	if (skb->tail < (skb->network_header + iph->ihl*4 + tcph->doff*4 +match_offset + match_len) )
+	{
+	    return 0;
+	}
 	mangle_contents(skb, iph->ihl*4 + tcph->doff*4,
 			match_offset, match_len, rep_buffer, rep_len);
 
@@ -301,6 +305,101 @@ nf_nat_mangle_udp_packet(struct sk_buff *skb,
 	return 1;
 }
 EXPORT_SYMBOL(nf_nat_mangle_udp_packet);
+
+
+/*************************************************************************/
+/* start: in the case of RTSP , change the TCP packet content, modified by 
+			chenjianfeng, 13Aug28*/
+int
+nf_nat_mangle_rtsp_packet(struct sk_buff *skb,
+			struct nf_conn *ct,
+			enum ip_conntrack_info ctinfo,
+			 unsigned int match_offset,
+			 unsigned int match_len,
+			 const char *rep_buffer,
+			 unsigned int rep_len)
+{
+	struct rtable *rt = skb_rtable(skb);
+	struct iphdr *iph;
+	struct tcphdr *tcph;
+	int oldlen, datalen;
+
+	if (!skb_make_writable(skb, skb->len))
+		return 0;
+
+	if (rep_len > match_len &&
+	    rep_len - match_len > skb_tailroom(skb) &&
+	    !enlarge_skb(skb, rep_len - match_len))
+		return 0;
+
+	SKB_LINEAR_ASSERT(skb);
+
+	iph = ip_hdr(skb);
+	tcph = (void *)iph + iph->ihl*4;
+
+	oldlen = skb->len - iph->ihl*4;
+	mangle_contents(skb, iph->ihl*4 + tcph->doff*4,
+			match_offset, match_len, rep_buffer, rep_len);
+
+	datalen = skb->len - iph->ihl*4;
+	if (skb->ip_summed != CHECKSUM_PARTIAL) {
+		if (!(rt->rt_flags & RTCF_LOCAL) &&
+		    skb->dev->features & NETIF_F_V4_CSUM) {
+			skb->ip_summed = CHECKSUM_PARTIAL;
+			skb->csum_start = skb_headroom(skb) +
+					  skb_network_offset(skb) +
+					  iph->ihl * 4;
+			skb->csum_offset = offsetof(struct tcphdr, check);
+			tcph->check = ~tcp_v4_check(datalen,
+						    iph->saddr, iph->daddr, 0);
+		} else {
+			tcph->check = 0;
+			tcph->check = tcp_v4_check(datalen,
+						   iph->saddr, iph->daddr,
+						   csum_partial(tcph,
+								datalen, 0));
+		}
+	} else
+	{
+		inet_proto_csum_replace2(&tcph->check, skb,
+					 htons(oldlen), htons(datalen), 1);
+	}
+	return 1;
+}
+EXPORT_SYMBOL(nf_nat_mangle_rtsp_packet);
+
+int
+nf_nat_mangle_rtsp_seq(struct sk_buff *skb,
+			 struct nf_conn *ct,
+			 enum ip_conntrack_info ctinfo,
+			 int sizeDiff)
+{
+	struct iphdr *iph;
+	struct tcphdr *tcph;
+	iph = ip_hdr(skb);
+	tcph = (void *)iph + iph->ihl*4;
+	
+	if (0 != sizeDiff) 
+	{
+		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
+		adjust_tcp_sequence(ntohl(tcph->seq),
+				    sizeDiff,
+				    ct, ctinfo);
+		/* Tell TCP window tracking about seq change */
+		nf_conntrack_tcp_update(skb, ip_hdrlen(skb),
+					ct, CTINFO2DIR(ctinfo),
+					sizeDiff);
+
+		nf_conntrack_event_cache(IPCT_NATSEQADJ, ct);
+	}
+	return 1;
+}
+EXPORT_SYMBOL(nf_nat_mangle_rtsp_seq);
+
+
+/* end: in the case of RTSP , change the TCP packet content, modified by 
+			chenjianfeng, 13Aug28*/
+/***********************************************************************/
 
 /* Adjust one found SACK option including checksum correction */
 static void
@@ -436,7 +535,12 @@ nf_nat_seq_adjust(struct sk_buff *skb,
 	tcph->seq = newseq;
 	tcph->ack_seq = newack;
 
-	return nf_nat_sack_adjust(skb, tcph, ct, ctinfo);
+	if (!nf_nat_sack_adjust(skb, tcph, ct, ctinfo))
+		return 0;
+
+	nf_conntrack_tcp_update(skb, ip_hdrlen(skb), ct, dir, seqoff);
+
+	return 1;
 }
 
 /* Setup NAT on this expected conntrack so it follows master. */

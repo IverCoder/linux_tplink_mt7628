@@ -1,4 +1,4 @@
-/* $Id: head.S,v 1.7 2003/09/01 17:58:19 lethal Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/sh/kernel/head_32.S#1 $
  *
  *  arch/sh/kernel/head.S
  *

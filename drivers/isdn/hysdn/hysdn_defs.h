@@ -1,4 +1,4 @@
-/* $Id: hysdn_defs.h,v 1.5.6.3 2001/09/23 22:24:54 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hysdn/hysdn_defs.h#1 $
  *
  * Linux driver for HYSDN cards
  * global definitions and exported vars and functions.

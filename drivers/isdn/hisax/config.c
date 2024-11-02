@@ -1,4 +1,4 @@
-/* $Id: config.c,v 2.84.2.5 2004/02/11 13:21:33 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/config.c#1 $
  *
  * Author       Karsten Keil
  * Copyright    by Karsten Keil      <keil@isdn4linux.de>

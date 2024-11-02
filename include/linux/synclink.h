@@ -1,7 +1,7 @@
 /*
  * SyncLink Multiprotocol Serial Adapter Driver
  *
- * $Id: synclink.h,v 3.14 2006/07/17 20:15:43 paulkf Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/synclink.h#1 $
  *
  * Copyright (C) 1998-2000 by Microgate Corporation
  *

@@ -1,4 +1,4 @@
-/* $Id: boardergo.c,v 1.5.6.7 2001/11/06 21:58:19 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hysdn/boardergo.c#1 $
  *
  * Linux driver for HYSDN cards, specific routines for ergo type boards.
  *

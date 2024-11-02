@@ -1,4 +1,4 @@
-/* $Id: checksum.S,v 1.10 2001/07/06 13:11:32 gniibe Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/sh/lib/checksum.S#1 $
  *
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket

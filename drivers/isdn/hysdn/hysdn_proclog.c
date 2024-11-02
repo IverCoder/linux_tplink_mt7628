@@ -1,4 +1,4 @@
-/* $Id: hysdn_proclog.c,v 1.9.6.3 2001/09/23 22:24:54 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hysdn/hysdn_proclog.c#1 $
  *
  * Linux driver for HYSDN cards, /proc/net filesystem log functions.
  *

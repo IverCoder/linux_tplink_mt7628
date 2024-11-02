@@ -1,4 +1,4 @@
-/* $Id: idifunc.c,v 1.14.4.4 2004/08/28 20:03:53 armin Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/eicon/idifunc.c#1 $
  *
  * Driver for Eicon DIVA Server ISDN cards.
  * User Mode IDI Interface 

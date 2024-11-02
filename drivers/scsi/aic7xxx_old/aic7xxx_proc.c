@@ -26,7 +26,7 @@
  *
  *  Dean W. Gehnert, deang@teleport.com, 05/01/96
  *
- *  $Id: aic7xxx_proc.c,v 4.1 1997/06/97 08:23:42 deang Exp $
+ *  $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aic7xxx_old/aic7xxx_proc.c#1 $
  *-M*************************************************************************/
 
 

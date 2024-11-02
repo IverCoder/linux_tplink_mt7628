@@ -1105,6 +1105,20 @@ errout:
 	rtnl_set_sk_err(net, RTNLGRP_ND_USEROPT, err);
 }
 
+/* Add by HYY, 15Apr13 */
+static inline int accept_ra(struct inet6_dev *in6_dev)
+{
+	/*
+	 * If forwarding is enabled, RA are not accepted unless the special
+	 * hybrid mode (accept_ra=2) is enabled.
+	 */
+	if (in6_dev->cnf.forwarding && in6_dev->cnf.accept_ra < 2)
+		return 0;
+
+	return in6_dev->cnf.accept_ra;
+}
+/* End Add */
+
 static void ndisc_router_discovery(struct sk_buff *skb)
 {
 	struct ra_msg *ra_msg = (struct ra_msg *)skb_transport_header(skb);
@@ -1159,7 +1173,8 @@ static void ndisc_router_discovery(struct sk_buff *skb)
 	}
 
 	/* skip route and link configuration on routers */
-	if (in6_dev->cnf.forwarding || !in6_dev->cnf.accept_ra)
+	/*if (in6_dev->cnf.forwarding || !in6_dev->cnf.accept_ra)*/
+	if (!accept_ra(in6_dev))
 		goto skip_linkparms;
 
 #ifdef CONFIG_IPV6_NDISC_NODETYPE
@@ -1186,6 +1201,11 @@ static void ndisc_router_discovery(struct sk_buff *skb)
 					IF_RA_MANAGED : 0) |
 				(ra_msg->icmph.icmp6_addrconf_other ?
 					IF_RA_OTHERCONF : 0);
+
+#ifdef CONFIG_IPV6_ROUTER_WAN_AUTO
+    in6_dev->cnf.mflag = ra_msg->icmph.icmp6_addrconf_managed ? 1 : 0;
+#endif
+
 
 	if (!in6_dev->cnf.accept_ra_defrtr)
 		goto skip_defrtr;
@@ -1310,7 +1330,8 @@ skip_linkparms:
 	}
 
 	/* skip route and link configuration on routers */
-	if (in6_dev->cnf.forwarding || !in6_dev->cnf.accept_ra)
+	/*if (in6_dev->cnf.forwarding || !in6_dev->cnf.accept_ra)*/
+	if (!accept_ra(in6_dev))
 		goto out;
 
 #ifdef CONFIG_IPV6_ROUTE_INFO

@@ -78,9 +78,16 @@
 
 #include "sched_cpupri.h"
 #include "workqueue_sched.h"
+#include "sched_autogroup.h"
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/sched.h>
+
+/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+#include <linux/sched_optimize.h>
+#endif
+/* add end  */
 
 /*
  * Convert user-nice values [ -20 ... 0 ... 19 ]
@@ -612,11 +619,14 @@ static inline int cpu_of(struct rq *rq)
  */
 static inline struct task_group *task_group(struct task_struct *p)
 {
+	struct task_group *tg;
 	struct cgroup_subsys_state *css;
 
 	css = task_subsys_state_check(p, cpu_cgroup_subsys_id,
 			lockdep_is_held(&task_rq(p)->lock));
-	return container_of(css, struct task_group, css);
+	tg = container_of(css, struct task_group, css);
+
+	return autogroup_task_group(p, tg);
 }
 
 /* Change a task's cfs_rq and parent entity if it moves across CPUs/groups */
@@ -1920,6 +1930,7 @@ static void deactivate_task(struct rq *rq, struct task_struct *p, int flags)
 #include "sched_idletask.c"
 #include "sched_fair.c"
 #include "sched_rt.c"
+#include "sched_autogroup.c"
 #ifdef CONFIG_SCHED_DEBUG
 # include "sched_debug.c"
 #endif
@@ -3739,6 +3750,17 @@ pick_next_task(struct rq *rq)
 /*
  * schedule() is the main scheduler function.
  */
+
+/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+#ifdef SCHED_DEBUG
+static unsigned long pppdSchedTime = 0;
+#endif
+//struct task_struct *afcdTask = NULL;
+//EXPORT_SYMBOL(afcdTask);
+#endif
+/* add end  */
+
 asmlinkage void __sched schedule(void)
 {
 	struct task_struct *prev, *next;
@@ -3795,6 +3817,13 @@ need_resched_nonpreemptible:
 	put_prev_task(rq, prev);
 	next = pick_next_task(rq);
 
+	/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+	//for socket monitor
+	//checkWaitTime(prev);
+#endif
+	/* add end  */
+
 	if (likely(prev != next)) {
 		sched_info_switch(prev, next);
 		perf_event_task_sched_out(prev, next);
@@ -3802,6 +3831,30 @@ need_resched_nonpreemptible:
 		rq->nr_switches++;
 		rq->curr = next;
 		++*switch_count;
+		
+		/* add by wanghao  */
+	#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+		//debug for pppd
+		#ifdef SCHED_DEBUG
+		if (strcmp(next->comm, "pppd") == 0)
+		{
+			//if (jiffies - pppdSchedTime >= 16000)
+			{
+				printk("Alert, pppd sched after %u!\n", jiffies - pppdSchedTime);
+			}
+			pppdSchedTime = jiffies;
+		}
+		#endif
+
+		/*if (strncmp(next->comm, "afcd", 4) == 0)
+		{
+			afcdTask = next;
+		}*/
+		
+		//for socket monitor
+		//checkWaitTime(next);
+	#endif
+		/* add end	*/
 
 		context_switch(rq, prev, next); /* unlocks the rq */
 		/*
@@ -3814,6 +3867,13 @@ need_resched_nonpreemptible:
 		rq = cpu_rq(cpu);
 	} else
 		raw_spin_unlock_irq(&rq->lock);
+
+	/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+	//for socket monitor
+	checkWaitTime(prev);
+#endif
+	/* add end  */
 
 	post_schedule(rq);
 
@@ -7696,7 +7756,7 @@ static void init_tg_rt_entry(struct task_group *tg, struct rt_rq *rt_rq,
 void __init sched_init(void)
 {
 	int i, j;
-	unsigned long alloc_size = 0, ptr;
+	unsigned long alloc_size = 0, ptr __maybe_unused;
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
 	alloc_size += 2 * nr_cpu_ids * sizeof(void **);
@@ -7749,7 +7809,7 @@ void __init sched_init(void)
 #ifdef CONFIG_CGROUP_SCHED
 	list_add(&init_task_group.list, &task_groups);
 	INIT_LIST_HEAD(&init_task_group.children);
-
+	autogroup_init(&init_task);
 #endif /* CONFIG_CGROUP_SCHED */
 
 #if defined CONFIG_FAIR_GROUP_SCHED && defined CONFIG_SMP
@@ -8279,15 +8339,11 @@ void sched_destroy_group(struct task_group *tg)
 /* change task's runqueue when it moves between groups.
  *	The caller of this function should have put the task in its new group
  *	by now. This function just updates tsk->se.cfs_rq and tsk->se.parent to
- *	reflect its new group.
+ *	reflect its new group.  Called with the runqueue lock held.
  */
-void sched_move_task(struct task_struct *tsk)
+void __sched_move_task(struct task_struct *tsk, struct rq *rq)
 {
 	int on_rq, running;
-	unsigned long flags;
-	struct rq *rq;
-
-	rq = task_rq_lock(tsk, &flags);
 
 	running = task_current(rq, tsk);
 	on_rq = tsk->se.on_rq;
@@ -8308,7 +8364,15 @@ void sched_move_task(struct task_struct *tsk)
 		tsk->sched_class->set_curr_task(rq);
 	if (on_rq)
 		enqueue_task(rq, tsk, 0);
+}
 
+void sched_move_task(struct task_struct *tsk)
+{
+	struct rq *rq;
+	unsigned long flags;
+
+	rq = task_rq_lock(tsk, &flags);
+	__sched_move_task(tsk, rq);
 	task_rq_unlock(rq, &flags);
 }
 #endif /* CONFIG_CGROUP_SCHED */

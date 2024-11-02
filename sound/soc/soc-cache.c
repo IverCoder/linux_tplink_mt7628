@@ -555,6 +555,11 @@ static struct {
  * Note that at present this code cannot be used by CODECs with
  * volatile registers.
  */
+#if defined(CONFIG_SND_RALINK_SOC)
+extern unsigned int mtk_i2c_read(struct snd_soc_codec *codec,unsigned int reg);
+extern int mtk_i2c_write(struct snd_soc_codec *codec, unsigned int reg,unsigned int val);
+#endif
+
 int snd_soc_codec_set_cache_io(struct snd_soc_codec *codec,
 			       int addr_bits, int data_bits,
 			       enum snd_soc_control_type control)
@@ -577,6 +582,10 @@ int snd_soc_codec_set_cache_io(struct snd_soc_codec *codec,
 
 	switch (control) {
 	case SND_SOC_CUSTOM:
+#if defined(CONFIG_SND_RALINK_SOC)
+		codec->write = mtk_i2c_write;
+		codec->read = mtk_i2c_read;
+#endif
 		break;
 
 	case SND_SOC_I2C:

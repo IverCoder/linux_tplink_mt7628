@@ -610,6 +610,35 @@ static ssize_t store_multicast_startup_query_interval(
 static DEVICE_ATTR(multicast_startup_query_interval, S_IRUGO | S_IWUSR,
 		   show_multicast_startup_query_interval,
 		   store_multicast_startup_query_interval);
+
+static ssize_t show_igmp_query_version(
+	struct device *d, struct device_attribute *attr, char *buf)
+{
+	struct net_bridge *br = to_bridge(d);
+    if (br != NULL) {
+        return sprintf(buf, "%u\n", br->igmp_query_version);
+    } else {
+        *buf = '\0';
+        return 0;
+    }
+}
+
+static int set_igmp_query_version(struct net_bridge *br, unsigned long val)
+{
+	br->igmp_query_version = (val & 0x3);
+	return 0;
+}
+
+static ssize_t store_igmp_query_version(
+	struct device *d, struct device_attribute *attr, const char *buf,
+	size_t len)
+{
+	return store_bridge_parm(d, buf, len, set_igmp_query_version);
+}
+static DEVICE_ATTR(igmp_query_version, S_IRUGO | S_IWUSR,
+		   show_igmp_query_version,
+		   store_igmp_query_version);
+
 #endif
 #ifdef CONFIG_BRIDGE_NETFILTER
 static ssize_t show_nf_call_iptables(
@@ -711,6 +740,7 @@ static struct attribute *bridge_attrs[] = {
 	&dev_attr_multicast_query_interval.attr,
 	&dev_attr_multicast_query_response_interval.attr,
 	&dev_attr_multicast_startup_query_interval.attr,
+	&dev_attr_igmp_query_version.attr,
 #endif
 #ifdef CONFIG_BRIDGE_NETFILTER
 	&dev_attr_nf_call_iptables.attr,

@@ -1,4 +1,4 @@
-/* $Id: teles0.c,v 2.15.2.4 2004/01/13 23:48:39 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/teles0.c#1 $
  *
  * low level stuff for Teles Memory IO isdn cards
  *
@@ -21,7 +21,7 @@
 #include "isac.h"
 #include "hscx.h"
 
-static const char *teles0_revision = "$Revision: 2.15.2.4 $";
+static const char *teles0_revision = "$Revision: #1 $";
 
 #define TELES_IOMEM_SIZE	0x400
 #define byteout(addr,val) outb(val,addr)

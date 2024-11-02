@@ -1,4 +1,4 @@
-/* $Id: memcpy.S,v 1.3 2001/07/27 11:50:52 gniibe Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/sh/lib/memcpy.S#1 $
  *
  * "memcpy" implementation of SuperH
  *

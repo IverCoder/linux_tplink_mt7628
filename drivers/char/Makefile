@@ -112,6 +112,25 @@ obj-$(CONFIG_TCG_TPM)		+= tpm/
 obj-$(CONFIG_PS3_FLASH)		+= ps3flash.o
 obj-$(CONFIG_RAMOOPS)		+= ramoops.o
 
+ifeq ($(CONFIG_TP_MODEL_WR840NV6_20),y)
+  obj-$(CONFIG_RALINK_GPIO)	+= ralink_gpio_wr840nv6_20.o
+else
+  obj-$(CONFIG_RALINK_GPIO)	+= ralink_gpio.o
+endif
+
+obj-$(CONFIG_RALINK_HSDMA)	+= hs_dma.o
+#obj-$(CONFIG_RALINK_HSDMA)	+= hs_dma_test.o
+#obj-$(CONFIG_RALINK_HSDMA)	+= mem_test.o
+obj-$(CONFIG_RALINK_GDMA)	+= ralink_gdma.o 
+#obj-$(CONFIG_RALINK_GDMA)	+= gdma_test.o
+obj-$(CONFIG_RALINK_SPI) 	+= spi_drv.o 
+obj-$(CONFIG_RALINK_I2C) 	+= i2c_drv.o
+obj-$(CONFIG_MTK_NFC_MT6605_SIM)+= mt6605_sim.o
+obj-$(CONFIG_RALINK_PCM)	+= pcm/
+obj-$(CONFIG_RALINK_I2S)	+= i2s/
+#obj-$(CONFIG_I2S_WITH_AEC)	+= i2s/aec/
+obj-$(CONFIG_RALINK_SPDIF)      += spdif/
+
 obj-$(CONFIG_JS_RTC)		+= js-rtc.o
 js-rtc-y = rtc.o
 

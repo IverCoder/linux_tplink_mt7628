@@ -8,7 +8,7 @@
  *     last modfied: Mon Apr 11 16:09:43 2005
  * 
  *   by /n/asic/design/tools/rdesc/src/rdes2c --outfile strmux_defs.h ../../inst/strmux/rtl/guinness/strmux_regs.r
- *      id: $Id: strmux_defs.h,v 1.1 2007/02/13 11:55:30 starvik Exp $
+ *      id: $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/include/arch-v32/mach-fs/mach/hwregs/strmux_defs.h#1 $
  * Any changes here will be lost.
  *
  * -*- buffer-read-only: t -*-

@@ -34,7 +34,7 @@ GNU General Public License for more details.
 This section contains comments describing changes made to this file.
 Notice that changes are listed in reverse chronological order.
 
-$Header: //source/qcom/qct/multimedia2/AdspSvc/7XXX/qdsp5cmd/video/qdsp5lpmmsg.h#2 $ $DateTime: 2008/07/30 10:50:23 $ $Author: pavanr $
+$Header: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/staging/dream/include/mach/qdsp5/qdsp5lpmmsg.h#1 $ $DateTime: 2014/05/07 23:03:57 $ $Author: red.hung $
 Revision History:
 
 when       who     what, where, why

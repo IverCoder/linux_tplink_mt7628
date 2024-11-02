@@ -32,6 +32,8 @@
 #include "vlanproc.h"
 #include <linux/if_vlan.h>
 
+#define QOS_8021P_REMARK
+
 /*
  *	Rebuild the Ethernet MAC header. This is called after an ARP
  *	(or in future other address resolution) has completed on this
@@ -343,6 +345,24 @@ static netdev_tx_t vlan_dev_hard_start_xmit(struct sk_buff *skb,
 
 
 	skb_set_dev(skb, vlan_dev_info(dev)->real_dev);
+	
+#ifdef QOS_8021P_REMARK
+	veth = (struct vlan_ethhdr *)(skb->data);
+	if (veth->h_vlan_proto == htons(ETH_P_8021Q))
+	{
+		#define QOS_8021P_MARK_BEGIN_BIT	17
+		#define QOS_8021P_OFFSET		13
+		
+		u16 prio = (skb->mark >> QOS_8021P_MARK_BEGIN_BIT) & 0x8;
+		if ( 0 != prio )
+		{
+			prio = (skb->mark >> QOS_8021P_MARK_BEGIN_BIT) & 0x7;
+			veth->h_vlan_TCI = (prio << QOS_8021P_OFFSET) | 
+				(veth->h_vlan_TCI & (0x1FFF));
+		}
+	}
+#endif
+
 	len = skb->len;
 	ret = dev_queue_xmit(skb);
 

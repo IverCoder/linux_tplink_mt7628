@@ -1,4 +1,4 @@
-/* $Id: isdnloop.h,v 1.5.6.3 2001/09/23 22:24:56 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/isdnloop/isdnloop.h#1 $
  *
  * Loopback lowlevel module for testing of linklevel.
  *

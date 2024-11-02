@@ -39,7 +39,7 @@ config EXT4_USE_FOR_EXT23
 
 config EXT4_FS_XATTR
 	bool "Ext4 extended attributes"
-	depends on EXT4_FS
+	depends on EXT4_FS && XATTR
 	default y
 	help
 	  Extended attributes are name:value pairs associated with inodes by

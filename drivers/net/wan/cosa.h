@@ -1,4 +1,4 @@
-/* $Id: cosa.h,v 1.6 1999/01/06 14:02:44 kas Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/wan/cosa.h#1 $ */
 
 /*
  *  Copyright (C) 1995-1997  Jan "Yenya" Kasprzak <kas@fi.muni.cz>

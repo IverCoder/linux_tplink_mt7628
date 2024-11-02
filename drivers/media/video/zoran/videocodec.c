@@ -6,7 +6,7 @@
  *
  * (c) 2002 Wolfgang Scherr <scherr@net4you.at>
  *
- * $Id: videocodec.c,v 1.1.2.8 2003/03/29 07:16:04 rbultje Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/media/video/zoran/videocodec.c#1 $
  *
  * ------------------------------------------------------------------------
  *

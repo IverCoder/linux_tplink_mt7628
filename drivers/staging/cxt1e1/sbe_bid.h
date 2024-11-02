@@ -1,5 +1,5 @@
 /*
- * $Id: sbe_bid.h,v 1.0 2005/09/28 00:10:09 rickd PMCC4_3_1B $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/staging/cxt1e1/sbe_bid.h#1 $
  */
 
 #ifndef _INC_SBEBID_H_
@@ -25,9 +25,9 @@
  *
  *-----------------------------------------------------------------------------
  * RCS info:
- * RCS revision: $Revision: 1.0 $
- * Last changed on $Date: 2005/09/28 00:10:09 $
- * Changed by $Author: rickd $
+ * RCS revision: $Revision: #1 $
+ * Last changed on $Date: 2014/05/07 $
+ * Changed by $Author: red.hung $
  *-----------------------------------------------------------------------------
  * $Log: sbe_bid.h,v $
  * Revision 1.0  2005/09/28 00:10:09  rickd

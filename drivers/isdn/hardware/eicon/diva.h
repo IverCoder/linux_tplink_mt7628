@@ -1,4 +1,4 @@
-/* $Id: diva.h,v 1.1.2.2 2001/02/08 12:25:43 armin Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/eicon/diva.h#1 $ */
 
 #ifndef __DIVA_XDI_OS_PART_H__
 #define __DIVA_XDI_OS_PART_H__

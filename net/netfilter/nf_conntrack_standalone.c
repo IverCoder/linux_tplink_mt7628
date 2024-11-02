@@ -178,6 +178,18 @@ static int ct_seq_show(struct seq_file *s, void *v)
 		goto release;
 #endif
 
+#if defined(CONFIG_NETFILTER_XT_MATCH_LAYER7) || defined(CONFIG_NETFILTER_XT_MATCH_LAYER7_MODULE)
+	if(ct->layer7.app_proto &&
+           seq_printf(s, "l7proto=%s ", ct->layer7.app_proto))
+		return -ENOSPC;
+#endif
+
+#if defined(CONFIG_NETFILTER_XT_MATCH_LAYER7) || defined(CONFIG_NETFILTER_XT_MATCH_LAYER7_MODULE)
+	if(ct->layer7.app_proto &&
+           seq_printf(s, "l7proto=%s ", ct->layer7.app_proto))
+		return -ENOSPC;
+#endif
+
 	if (seq_printf(s, "use=%u\n", atomic_read(&ct->ct_general.use)))
 		goto release;
 
@@ -200,10 +212,43 @@ static int ct_open(struct inode *inode, struct file *file)
 			sizeof(struct ct_iter_state));
 }
 
+#define PPTP_DST_PORT (1732)
+static int kill_all(struct nf_conn *i, void *data)
+{
+    u_int8_t protonum = nf_ct_protonum(i);
+    u_int16_t dstport = i->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u.tcp.port;
+    
+    if ((IPPROTO_TCP == protonum && dstport != PPTP_DST_PORT) ||
+        IPPROTO_UDP == protonum ||
+        IPPROTO_ICMP == protonum)
+        return 1;
+    else
+        return 0;
+}
+
+static ssize_t ct_file_write(struct file *file, const char __user *buf,
+			     size_t count, loff_t *ppos)
+{
+	struct seq_file *seq = file->private_data;
+	struct net *net = seq_file_net(seq);
+
+	if (count) {
+		char c;
+
+		if (get_user(c, buf))
+			return -EFAULT;
+
+		if (c == 'f')
+			nf_ct_iterate_cleanup(net, kill_all, NULL);
+	}
+	return count;
+}
+
 static const struct file_operations ct_file_ops = {
 	.owner   = THIS_MODULE,
 	.open    = ct_open,
 	.read    = seq_read,
+	.write	 = ct_file_write,
 	.llseek  = seq_lseek,
 	.release = seq_release_net,
 };

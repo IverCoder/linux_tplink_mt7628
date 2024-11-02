@@ -84,6 +84,7 @@ static void check_stdin(void)
 static int conf_askvalue(struct symbol *sym, const char *def)
 {
 	enum symbol_type type = sym_get_type(sym);
+	tristate oldval = sym_get_tristate_value(sym);
 
 	if (!sym_has_value(sym))
 		printf(_("(NEW) "));
@@ -108,7 +109,52 @@ static int conf_askvalue(struct symbol *sym, const char *def)
 		check_stdin();
 	case oldaskconfig:
 		fflush(stdout);
+#if 0
 		xfgets(line, 128, stdin);
+#else
+		switch (sym->type) {
+		case S_INT:
+		case S_HEX:
+		case S_STRING:
+			if (def && strcmp(def, ""))
+				sprintf(line, "%s\n", def);
+			else
+				xfgets(line, 128, stdin);
+			break;
+		case S_BOOLEAN:
+			switch (oldval) {
+			case no:
+				sprintf(line, "N\n");
+				break;
+			case yes:
+				sprintf(line, "Y\n");
+				break;
+			default:
+				sprintf(line, "N\n");
+				break;
+			}
+			break;
+		case S_TRISTATE:
+			switch (oldval) {
+			case no:
+				sprintf(line, "N\n");
+				break;
+			case mod:
+				sprintf(line, "M\n");
+				break;
+			case yes:
+				sprintf(line, "Y\n");
+				break;
+			default:
+				sprintf(line, "N\n");
+				break;
+			}
+			break;
+		default:
+			sprintf(line, "N\n");
+			break;
+		}
+#endif
 		return 1;
 	default:
 		break;

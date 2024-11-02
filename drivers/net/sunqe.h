@@ -1,4 +1,4 @@
-/* $Id: sunqe.h,v 1.13 2000/02/09 11:15:42 davem Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/sunqe.h#1 $
  * sunqe.h: Definitions for the Sun QuadEthernet driver.
  *
  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)

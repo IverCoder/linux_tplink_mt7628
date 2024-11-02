@@ -1,5 +1,5 @@
 # .gdbinit file
-# $Id: dot.gdbinit.vdec2,v 1.2 2004/11/11 02:03:15 takata Exp $
+# $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/m32r/platforms/mappi2/dot.gdbinit.vdec2#1 $
 
 # setting
 set width 0d70

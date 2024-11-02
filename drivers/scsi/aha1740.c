@@ -1,4 +1,4 @@
-/*  $Id$
+/*  $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aha1740.c#1 $
  *  1993/03/31
  *  linux/kernel/aha1740.c
  *

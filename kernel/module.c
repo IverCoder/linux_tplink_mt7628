@@ -1347,7 +1347,7 @@ static void add_usage_links(struct module *mod)
 {
 #ifdef CONFIG_MODULE_UNLOAD
 	struct module_use *use;
-	int nowarn;
+	int nowarn __maybe_unused;
 
 	mutex_lock(&module_mutex);
 	list_for_each_entry(use, &mod->target_list, target_list) {
@@ -2036,7 +2036,7 @@ static inline void layout_symtab(struct module *mod, struct load_info *info)
 {
 }
 
-static void add_kallsyms(struct module *mod, struct load_info *info)
+static void add_kallsyms(struct module *mod, const struct load_info *info)
 {
 }
 #endif /* CONFIG_KALLSYMS */

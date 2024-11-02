@@ -185,7 +185,23 @@ int xfrm_input(struct sk_buff *skb, int nexthdr, __be32 spi, int encap_type)
 		spin_unlock(&x->lock);
 
 		XFRM_SKB_CB(skb)->seq.input = seq;
-
+#if defined (CONFIG_RALINK_HWCRYPTO) || defined (CONFIG_RALINK_HWCRYPTO_MODULE)
+		if (x->type->proto==IPPROTO_ESP)
+		{	
+		
+			if (x->type->input(x, skb) == 1)
+			{
+				return 0;
+			}
+			else
+				goto drop;
+		}
+		else if (x->type->proto==IPPROTO_AH)
+		{
+			nexthdr = x->type->input(x, skb);
+		}
+		else	
+#endif
 		nexthdr = x->type->input(x, skb);
 
 		if (nexthdr == -EINPROGRESS)

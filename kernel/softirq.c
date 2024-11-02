@@ -29,6 +29,13 @@
 #include <trace/events/irq.h>
 
 #include <asm/irq.h>
+
+/* add by wanghao  */
+#ifdef CONFIG_SOFTIRQ_DYNAMIC_TUNNING
+#include <linux/sched_optimize.h>
+#endif
+/* add end  */
+
 /*
    - No shared variables, all the data are CPU local.
    - If a softirq needs serialization, let it serialize itself
@@ -187,13 +194,23 @@ EXPORT_SYMBOL(local_bh_enable_ip);
  * should not be able to lock up the box.
  */
 #define MAX_SOFTIRQ_RESTART 10
+#define MAX_SOFTIRQ_TIME  msecs_to_jiffies(2)
 
 asmlinkage void __do_softirq(void)
 {
 	struct softirq_action *h;
 	__u32 pending;
+#ifdef CONFIG_SOFTIRQ_DYNAMIC_TUNNING
+	int max_restart = maxSoftirqRestart;
+#else
 	int max_restart = MAX_SOFTIRQ_RESTART;
+#endif
 	int cpu;
+#ifdef CONFIG_SOFTIRQ_DYNAMIC_TUNNING
+	unsigned long end = jiffies + maxSoftirqTime;
+#else
+    unsigned long end = jiffies + MAX_SOFTIRQ_TIME;
+#endif
 
 	pending = local_softirq_pending();
 	account_system_vtime(current);
@@ -218,6 +235,7 @@ restart:
 			trace_softirq_entry(h, softirq_vec);
 			h->action(h);
 			trace_softirq_exit(h, softirq_vec);
+			
 			if (unlikely(prev_count != preempt_count())) {
 				printk(KERN_ERR "huh, entered softirq %td %s %p"
 				       "with preempt_count %08x,"
@@ -229,6 +247,7 @@ restart:
 
 			rcu_bh_qs(cpu);
 		}
+
 		h++;
 		pending >>= 1;
 	} while (pending);
@@ -236,7 +255,7 @@ restart:
 	local_irq_disable();
 
 	pending = local_softirq_pending();
-	if (pending && --max_restart)
+	if (pending && time_before(jiffies, end) && --max_restart)
 		goto restart;
 
 	if (pending)
@@ -248,12 +267,18 @@ restart:
 	_local_bh_enable();
 }
 
+
 #ifndef __ARCH_HAS_DO_SOFTIRQ
 
 asmlinkage void do_softirq(void)
 {
 	__u32 pending;
 	unsigned long flags;
+	/* add by wanghao  */
+#ifdef CONFIG_SOFTIRQ_DYNAMIC_TUNNING
+	unsigned long jiffiesCounter = 0;
+#endif
+	/* add end  */
 
 	if (in_interrupt())
 		return;
@@ -263,7 +288,23 @@ asmlinkage void do_softirq(void)
 	pending = local_softirq_pending();
 
 	if (pending)
+	{
+	#ifdef CONFIG_SOFTIRQ_DYNAMIC_TUNNING
+		jiffiesCounter = jiffies;
+	#endif
 		__do_softirq();
+	/* add by wanghao  */
+	#ifdef CONFIG_SOFTIRQ_DYNAMIC_TUNNING
+		maxSoftirqRestartTunning(jiffiesCounter);
+	#endif
+	}
+#ifdef CONFIG_SOFTIRQ_DYNAMIC_TUNNING
+	else
+	{
+		restoreMaxSoftirqRestart();
+	}
+#endif
+	/* add end  */
 
 	local_irq_restore(flags);
 }
@@ -300,7 +341,9 @@ void irq_exit(void)
 	trace_hardirq_exit();
 	sub_preempt_count(IRQ_EXIT_OFFSET);
 	if (!in_interrupt() && local_softirq_pending())
+	{
 		invoke_softirq();
+	}
 
 	rcu_irq_exit();
 #ifdef CONFIG_NO_HZ
@@ -694,6 +737,13 @@ void __init softirq_init(void)
 
 static int run_ksoftirqd(void * __bind_cpu)
 {
+	/* add by wanghao  */
+#ifdef CONFIG_SOFTIRQ_DYNAMIC_TUNNING
+	softirqTime = jiffies + MAX_SOFTIRQ_HANDLE_TIME;
+	loadCountTime = jiffies + LOAD_COUNT_TIME;
+#endif
+	/* add end*/
+
 	set_current_state(TASK_INTERRUPTIBLE);
 
 	while (!kthread_should_stop()) {
@@ -805,6 +855,9 @@ static int __cpuinit cpu_callback(struct notifier_block *nfb,
 	switch (action) {
 	case CPU_UP_PREPARE:
 	case CPU_UP_PREPARE_FROZEN:
+	#ifdef CONFIG_SOFTIRQ_DYNAMIC_TUNNING
+		maxSoftirqTime = MAX_SOFTIRQ_TIME;//add by wanghao
+	#endif
 		p = kthread_create(run_ksoftirqd, hcpu, "ksoftirqd/%d", hotcpu);
 		if (IS_ERR(p)) {
 			printk("ksoftirqd for %i failed\n", hotcpu);

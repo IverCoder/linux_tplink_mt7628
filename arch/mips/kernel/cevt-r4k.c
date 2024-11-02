@@ -32,6 +32,7 @@ static int mips_next_event(unsigned long delta,
 	cnt += delta;
 	write_c0_compare(cnt);
 	res = ((int)(read_c0_count() - cnt) > 0) ? -ETIME : 0;
+
 	return res;
 }
 
@@ -47,6 +48,18 @@ DEFINE_PER_CPU(struct clock_event_device, mips_clockevent_device);
 int cp0_timer_irq_installed;
 
 #ifndef CONFIG_MIPS_MT_SMTC
+
+#if defined(CONFIG_RALINK_SYSTICK) && defined(CONFIG_RALINK_MT7621)
+void ra_percpu_event_handler(void)
+{
+	struct clock_event_device *cd;
+	int cpu = smp_processor_id();
+
+	cd = &per_cpu(mips_clockevent_device, cpu);
+	cd->event_handler(cd);
+}
+#endif
+
 
 irqreturn_t c0_compare_interrupt(int irq, void *dev_id)
 {
@@ -68,13 +81,13 @@ irqreturn_t c0_compare_interrupt(int irq, void *dev_id)
 	 * above we now know that the reason we got here must be a timer
 	 * interrupt.  Being the paranoiacs we are we check anyway.
 	 */
+
 	if (!r2 || (read_c0_cause() & (1 << 30))) {
 		/* Clear Count/Compare Interrupt */
 		write_c0_compare(read_c0_compare());
 		cd = &per_cpu(mips_clockevent_device, cpu);
 		cd->event_handler(cd);
 	}
-
 out:
 	return IRQ_HANDLED;
 }
@@ -161,6 +174,8 @@ int c0_compare_int_usable(void)
 
 #ifndef CONFIG_MIPS_MT_SMTC
 
+extern void ra_systick_event_broadcast(const struct cpumask *mask);
+
 int __cpuinit r4k_clockevent_init(void)
 {
 	unsigned int cpu = smp_processor_id();
@@ -184,21 +199,25 @@ int __cpuinit r4k_clockevent_init(void)
 
 	cd = &per_cpu(mips_clockevent_device, cpu);
 
-	cd->name		= "MIPS";
 	cd->features		= CLOCK_EVT_FEAT_ONESHOT;
 
-	clockevent_set_clock(cd, mips_hpt_frequency);
+#if defined(CONFIG_RALINK_SYSTICK) && defined(CONFIG_RALINK_MT7621)
+	cd->features		= cd->features | CLOCK_EVT_FEAT_DUMMY;
+	cd->broadcast		= ra_systick_event_broadcast;
+#endif
 
 	/* Calculate the min / max delta */
+	cd->name		= "MIPS";
+	clockevent_set_clock(cd, mips_hpt_frequency);
 	cd->max_delta_ns	= clockevent_delta2ns(0x7fffffff, cd);
 	cd->min_delta_ns	= clockevent_delta2ns(0x300, cd);
-
 	cd->rating		= 300;
 	cd->irq			= irq;
 	cd->cpumask		= cpumask_of(cpu);
 	cd->set_next_event	= mips_next_event;
 	cd->set_mode		= mips_set_clock_mode;
 	cd->event_handler	= mips_event_handler;
+
 
 	clockevents_register_device(cd);
 

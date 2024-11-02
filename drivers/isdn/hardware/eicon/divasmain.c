@@ -1,4 +1,4 @@
-/* $Id: divasmain.c,v 1.55.4.6 2005/02/09 19:28:20 armin Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/eicon/divasmain.c#1 $
  *
  * Low level driver for Eicon DIVA Server ISDN cards.
  *
@@ -37,7 +37,7 @@
 #include "diva_dma.h"
 #include "diva_pci.h"
 
-static char *main_revision = "$Revision: 1.55.4.6 $";
+static char *main_revision = "$Revision: #1 $";
 
 static int major;
 

@@ -1,4 +1,4 @@
-/* $Id: isdnloop.c,v 1.11.6.7 2001/11/11 19:54:31 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/isdnloop/isdnloop.c#1 $
  *
  * ISDN low-level module implementing a dummy loop driver.
  *
@@ -16,7 +16,7 @@
 #include <linux/sched.h>
 #include "isdnloop.h"
 
-static char *revision = "$Revision: 1.11.6.7 $";
+static char *revision = "$Revision: #1 $";
 static char *isdnloop_id = "loop0";
 
 MODULE_DESCRIPTION("ISDN4Linux: Pseudo Driver that simulates an ISDN card");

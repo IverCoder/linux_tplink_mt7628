@@ -98,6 +98,9 @@
 #include <net/net_namespace.h>
 #include <net/sock.h>
 #include <linux/rtnetlink.h>
+#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
+#include <linux/imq.h>
+#endif
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
 #include <linux/stat.h>
@@ -129,9 +132,14 @@
 #include <linux/random.h>
 #include <trace/events/napi.h>
 #include <linux/pci.h>
+#include <linux/if_pppox.h>
+#include <linux/if_tunnel.h>
+#include <linux/ppp_defs.h>
 
 #include "net-sysfs.h"
-
+#if defined(CONFIG_RA_HW_NAT) || defined(CONFIG_RA_HW_NAT_MODULE)
+#include "../../net/nat/hw_nat/ra_nat.h"
+#endif
 /* Instead of increasing this, you should create a hash table. */
 #define MAX_GRO_SKBS 8
 
@@ -194,6 +202,14 @@ static struct list_head ptype_all __read_mostly;	/* Taps */
  */
 DEFINE_RWLOCK(dev_base_lock);
 EXPORT_SYMBOL(dev_base_lock);
+
+/* brief 对所有来自WAN的流量均设置数据包的mark字段的第15位为1。	zl added 2012-3-17 */
+#define MASK_FOR_WAN2LAN    (0X00008000)
+
+/* zl added 2012-7-19 */
+#define SIOCSIFPRIVFLAGS    0x89ba  /* set device priv_flags */
+#define SIOCGIFPRIVFLAGS    0x89bb  /* get device priv_flags */
+/* end--added */
 
 static inline struct hlist_head *dev_name_hash(struct net *net, const char *name)
 {
@@ -1894,6 +1910,19 @@ static int dev_gso_segment(struct sk_buff *skb)
 		return PTR_ERR(segs);
 
 	skb->next = segs;
+
+    /* ·ÖÆ¬Á´ÉÏµÄskbÐèÒª¼Ì³ÐÔ­skb¹ØÓÚHW NATµÄ±êÖ¾Î»Êý¾Ý, by yuanshang, 2013-12-18 */
+#if defined(CONFIG_RA_HW_NAT) || defined(CONFIG_RA_HW_NAT_MODULE)
+    while (segs)
+    {
+    	if (IS_SPACE_AVAILABLED(segs))
+        {
+    		memcpy(FOE_INFO_START_ADDR(segs), FOE_INFO_START_ADDR(skb), FOE_INFO_LEN);
+        }
+        segs = segs->next;
+    }
+        
+#endif
 	DEV_GSO_CB(skb)->destructor = skb->destructor;
 	skb->destructor = dev_gso_skb_destructor;
 
@@ -1942,7 +1971,11 @@ int dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev,
 	int rc = NETDEV_TX_OK;
 
 	if (likely(!skb->next)) {
-		if (!list_empty(&ptype_all))
+		if (!list_empty(&ptype_all)
+#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
+			&& !(skb->imq_flags & IMQ_F_ENQUEUE)
+#endif
+		   )	
 			dev_queue_xmit_nit(skb, dev);
 
 		/*
@@ -2054,8 +2087,7 @@ static inline u16 dev_cap_txqueue(struct net_device *dev, u16 queue_index)
 	return queue_index;
 }
 
-static struct netdev_queue *dev_pick_tx(struct net_device *dev,
-					struct sk_buff *skb)
+struct netdev_queue *dev_pick_tx(struct net_device *dev, struct sk_buff *skb)
 {
 	int queue_index;
 	const struct net_device_ops *ops = dev->netdev_ops;
@@ -2084,7 +2116,7 @@ static struct netdev_queue *dev_pick_tx(struct net_device *dev,
 	skb_set_queue_mapping(skb, queue_index);
 	return netdev_get_tx_queue(dev, queue_index);
 }
-
+EXPORT_SYMBOL(dev_pick_tx);
 static inline int __dev_xmit_skb(struct sk_buff *skb, struct Qdisc *q,
 				 struct net_device *dev,
 				 struct netdev_queue *txq)
@@ -2247,9 +2279,17 @@ EXPORT_SYMBOL(dev_queue_xmit);
   =======================================================================*/
 
 int netdev_max_backlog __read_mostly = 1000;
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+int netdev_max_mbacklog  = 1000;
+#endif
 int netdev_tstamp_prequeue __read_mostly = 1;
+#ifdef CONFIG_MULTICAST_PKT_FIRST
 int netdev_budget __read_mostly = 300;
 int weight_p __read_mostly = 64;            /* old backlog weight */
+#else
+int netdev_budget __read_mostly = 48;
+int weight_p __read_mostly = 32;            /* old backlog weight */
+#endif
 
 /* Called with irq disabled */
 static inline void ____napi_schedule(struct softnet_data *sd,
@@ -2265,6 +2305,151 @@ static inline void ____napi_schedule(struct softnet_data *sd,
 struct rps_sock_flow_table *rps_sock_flow_table __read_mostly;
 EXPORT_SYMBOL(rps_sock_flow_table);
 
+static inline int proto_ports_offset(int proto)
+{
+        switch (proto) {
+        case IPPROTO_TCP:
+        case IPPROTO_UDP:
+        case IPPROTO_DCCP:
+        case IPPROTO_ESP:       /* SPI */
+        case IPPROTO_SCTP:
+        case IPPROTO_UDPLITE:
+                return 0;
+        case IPPROTO_AH:        /* SPI */
+                return 4;
+        default:
+                return -EINVAL;
+        }
+}
+
+/*
+ * __skb_get_rxhash: calculate a flow hash based on src/dst addresses
+ * and src/dst port numbers.  Sets rxhash in skb to non-zero hash value
+ * on success, zero indicates no valid hash.  Also, sets l4_rxhash in skb
+ * if hash is a canonical 4-tuple hash over transport ports.
+ */
+void __skb_get_rxhash(struct sk_buff *skb)
+{
+        int nhoff, hash = 0, poff;
+        const struct ipv6hdr *ip6;
+        const struct iphdr *ip;
+        const struct vlan_hdr *vlan;
+        u8 ip_proto;
+        u32 addr1, addr2;
+        u16 proto;
+        union {
+                u32 v32;
+                u16 v16[2];
+        } ports;
+
+        nhoff = skb_network_offset(skb);
+        proto = skb->protocol;
+
+again:
+        switch (proto) {
+        case __constant_htons(ETH_P_IP):
+ip:
+                if (!pskb_may_pull(skb, sizeof(*ip) + nhoff))
+                        goto done;
+
+                ip = (const struct iphdr *) (skb->data + nhoff);
+		if ((ip->frag_off & htons(IP_MF | IP_OFFSET)) != 0)
+                        ip_proto = 0;
+                else
+                        ip_proto = ip->protocol;
+                addr1 = (__force u32) ip->saddr;
+                addr2 = (__force u32) ip->daddr;
+                nhoff += ip->ihl * 4;
+                break;
+        case __constant_htons(ETH_P_IPV6):
+ipv6:
+                if (!pskb_may_pull(skb, sizeof(*ip6) + nhoff))
+                        goto done;
+
+                ip6 = (const struct ipv6hdr *) (skb->data + nhoff);
+                ip_proto = ip6->nexthdr;
+                addr1 = (__force u32) ip6->saddr.s6_addr32[3];
+                addr2 = (__force u32) ip6->daddr.s6_addr32[3];
+                nhoff += 40;
+                break;
+        case __constant_htons(ETH_P_8021Q):
+                if (!pskb_may_pull(skb, sizeof(*vlan) + nhoff))
+                        goto done;
+                vlan = (const struct vlan_hdr *) (skb->data + nhoff);
+                proto = vlan->h_vlan_encapsulated_proto;
+                nhoff += sizeof(*vlan);
+                goto again;
+        case __constant_htons(ETH_P_PPP_SES):
+                if (!pskb_may_pull(skb, PPPOE_SES_HLEN + nhoff))
+                        goto done;
+                proto = *((__be16 *) (skb->data + nhoff +
+                                      sizeof(struct pppoe_hdr)));
+                nhoff += PPPOE_SES_HLEN;
+                switch (proto) {
+                case __constant_htons(PPP_IP):
+                        goto ip;
+                case __constant_htons(PPP_IPV6):
+                        goto ipv6;
+                default:
+                        goto done;
+                }
+        default:
+                goto done;
+        }
+
+        switch (ip_proto) {
+        case IPPROTO_GRE:
+                if (pskb_may_pull(skb, nhoff + 16)) {
+                        u8 *h = skb->data + nhoff;
+                        __be16 flags = *(__be16 *)h;
+
+                        /*
+                         * Only look inside GRE if version zero and no
+                         * routing
+                         */
+                        if (!(flags & (GRE_VERSION|GRE_ROUTING))) {
+                                proto = *(__be16 *)(h + 2);
+                                nhoff += 4;
+                                if (flags & GRE_CSUM)
+                                        nhoff += 4;
+                                if (flags & GRE_KEY)
+                                        nhoff += 4;
+                                if (flags & GRE_SEQ)
+                                        nhoff += 4;
+                                goto again;
+                        }
+                }
+                break;
+        case IPPROTO_IPIP:
+                goto again;
+        default:
+                break;
+        }
+
+        ports.v32 = 0;
+        poff = proto_ports_offset(ip_proto);
+        if (poff >= 0) {
+                nhoff += poff;
+                if (pskb_may_pull(skb, nhoff + 4)) {
+                        ports.v32 = * (__force u32 *) (skb->data + nhoff);
+                        if (ports.v16[1] < ports.v16[0])
+                                swap(ports.v16[0], ports.v16[1]);
+                }
+        }
+
+        /* get a consistent hash (same value on both flow directions) */
+        if (addr2 < addr1)
+                swap(addr1, addr2);
+
+        hash = jhash_3words(addr1, addr2, ports.v32, hashrnd);
+        if (!hash)
+                hash = 1;
+
+done:
+        skb->rxhash = hash;
+}
+EXPORT_SYMBOL(__skb_get_rxhash);
+
 /*
  * get_rps_cpu is called from netif_receive_skb and returns the target
  * CPU from the RPS map of the receiving queue for a given skb.
@@ -2273,20 +2458,12 @@ EXPORT_SYMBOL(rps_sock_flow_table);
 static int get_rps_cpu(struct net_device *dev, struct sk_buff *skb,
 		       struct rps_dev_flow **rflowp)
 {
-	struct ipv6hdr *ip6;
-	struct iphdr *ip;
 	struct netdev_rx_queue *rxqueue;
 	struct rps_map *map;
 	struct rps_dev_flow_table *flow_table;
 	struct rps_sock_flow_table *sock_flow_table;
 	int cpu = -1;
-	u8 ip_proto;
 	u16 tcpu;
-	u32 addr1, addr2, ihl;
-	union {
-		u32 v32;
-		u16 v16[2];
-	} ports;
 
 	if (skb_rx_queue_recorded(skb)) {
 		u16 index = skb_get_rx_queue(skb);
@@ -2303,60 +2480,12 @@ static int get_rps_cpu(struct net_device *dev, struct sk_buff *skb,
 	if (!rxqueue->rps_map && !rxqueue->rps_flow_table)
 		goto done;
 
-	if (skb->rxhash)
-		goto got_hash; /* Skip hash computation on packet header */
-
-	switch (skb->protocol) {
-	case __constant_htons(ETH_P_IP):
-		if (!pskb_may_pull(skb, sizeof(*ip)))
-			goto done;
-
-		ip = (struct iphdr *) skb->data;
-		ip_proto = ip->protocol;
-		addr1 = (__force u32) ip->saddr;
-		addr2 = (__force u32) ip->daddr;
-		ihl = ip->ihl;
-		break;
-	case __constant_htons(ETH_P_IPV6):
-		if (!pskb_may_pull(skb, sizeof(*ip6)))
-			goto done;
-
-		ip6 = (struct ipv6hdr *) skb->data;
-		ip_proto = ip6->nexthdr;
-		addr1 = (__force u32) ip6->saddr.s6_addr32[3];
-		addr2 = (__force u32) ip6->daddr.s6_addr32[3];
-		ihl = (40 >> 2);
-		break;
-	default:
-		goto done;
-	}
-	switch (ip_proto) {
-	case IPPROTO_TCP:
-	case IPPROTO_UDP:
-	case IPPROTO_DCCP:
-	case IPPROTO_ESP:
-	case IPPROTO_AH:
-	case IPPROTO_SCTP:
-	case IPPROTO_UDPLITE:
-		if (pskb_may_pull(skb, (ihl * 4) + 4)) {
-			ports.v32 = * (__force u32 *) (skb->data + (ihl * 4));
-			if (ports.v16[1] < ports.v16[0])
-				swap(ports.v16[0], ports.v16[1]);
-			break;
-		}
-	default:
-		ports.v32 = 0;
-		break;
+	/* Skip hash computation on packet header */
+	skb_reset_network_header(skb);
+	if(!skb->rxhash) {
+		__skb_get_rxhash(skb);
 	}
 
-	/* get a consistent hash (same value on both flow directions) */
-	if (addr2 < addr1)
-		swap(addr1, addr2);
-	skb->rxhash = jhash_3words(addr1, addr2, ports.v32, hashrnd);
-	if (!skb->rxhash)
-		skb->rxhash = 1;
-
-got_hash:
 	flow_table = rcu_dereference(rxqueue->rps_flow_table);
 	sock_flow_table = rcu_dereference(rps_sock_flow_table);
 	if (flow_table && sock_flow_table) {
@@ -2451,16 +2580,48 @@ static int enqueue_to_backlog(struct sk_buff *skb, int cpu,
 {
 	struct softnet_data *sd;
 	unsigned long flags;
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+    struct ethhdr *mac;
+    int uniPkt = 1;
+#endif
 
 	sd = &per_cpu(softnet_data, cpu);
+
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+    if (skb_mac_header_was_set(skb))
+    {
+        mac = skb_mac_header(skb);
+        uniPkt = (mac->h_dest[0] ^ 0x01) | (mac->h_dest[1] ^ 0x00) | 
+                    (mac->h_dest[2] ^ 0x5e);
+    }
+#endif
 
 	local_irq_save(flags);
 
 	rps_lock(sd);
-	if (skb_queue_len(&sd->input_pkt_queue) <= netdev_max_backlog) {
-		if (skb_queue_len(&sd->input_pkt_queue)) {
+
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+	if ((uniPkt && skb_queue_len(&sd->input_pkt_queue) <= netdev_max_backlog) || 
+        (!uniPkt && skb_queue_len(&sd->input_mpkt_queue) <= netdev_max_backlog))
+    {
+		if (skb_queue_len(&sd->input_pkt_queue) || skb_queue_len(&sd->input_mpkt_queue)) 
+        {
+#else
+	if (skb_queue_len(&sd->input_pkt_queue) <= netdev_max_backlog)
+    {
+		if (skb_queue_len(&sd->input_pkt_queue)) 
+        {
+#endif
 enqueue:
-			__skb_queue_tail(&sd->input_pkt_queue, skb);
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+            if (uniPkt)
+                __skb_queue_tail(&sd->input_pkt_queue, skb);
+            else
+                __skb_queue_tail(&sd->input_mpkt_queue, skb);
+#else
+            __skb_queue_tail(&sd->input_pkt_queue, skb);
+#endif
+
 			input_queue_tail_incr_save(sd, qtail);
 			rps_unlock(sd);
 			local_irq_restore(flags);
@@ -2474,7 +2635,8 @@ enqueue:
 			if (!rps_ipi_queued(sd))
 				____napi_schedule(sd, &sd->backlog);
 		}
-		goto enqueue;
+
+        goto enqueue;
 	}
 
 	sd->dropped++;
@@ -2512,6 +2674,12 @@ int netif_rx(struct sk_buff *skb)
 	if (netdev_tstamp_prequeue)
 		net_timestamp_check(skb);
 
+	/* zl added 2012-3-17 for mark downstream (traffic from wan interface)*/
+    if(skb->dev && (skb->dev->priv_flags & IFF_WAN_DEV))
+    {
+        skb->mark |= MASK_FOR_WAN2LAN;
+    }
+    /* end--added */
 #ifdef CONFIG_RPS
 	{
 		struct rps_dev_flow voidflow, *rflow = &voidflow;
@@ -2620,7 +2788,7 @@ static inline int deliver_skb(struct sk_buff *skb,
 }
 
 #if (defined(CONFIG_BRIDGE) || defined(CONFIG_BRIDGE_MODULE)) && \
-    (defined(CONFIG_ATM_LANE) || defined(CONFIG_ATM_LANE_MODULE))
+    (defined(CONFIG_ATM_LANE) || defined(CONFIG_ATM_LANE_MODULE)) || defined(CONFIG_MACVLAN)
 /* This hook is defined here for ATM LANE */
 int (*br_fdb_test_addr_hook)(struct net_device *dev,
 			     unsigned char *addr) __read_mostly;
@@ -2764,6 +2932,11 @@ void netdev_rx_handler_unregister(struct net_device *dev)
 }
 EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
 
+#if defined(CONFIG_SHORTCUT_FE) || defined(CONFIG_SHORTCUT_FE_MODULE)
+int (*athrs_fast_nat_recv)(struct sk_buff *skb) __rcu __read_mostly;
+EXPORT_SYMBOL_GPL(athrs_fast_nat_recv);
+#endif
+
 static inline void skb_bond_set_mac_by_master(struct sk_buff *skb,
 					      struct net_device *master)
 {
@@ -2823,6 +2996,9 @@ static int __netif_receive_skb(struct sk_buff *skb)
 	struct net_device *null_or_orig;
 	struct net_device *orig_or_bond;
 	int ret = NET_RX_DROP;
+#if defined(CONFIG_SHORTCUT_FE) || defined(CONFIG_SHORTCUT_FE_MODULE)
+	int (*fast_recv)(struct sk_buff *skb);
+#endif
 	__be16 type;
 
 	if (!netdev_tstamp_prequeue)
@@ -2837,6 +3013,13 @@ static int __netif_receive_skb(struct sk_buff *skb)
 
 	if (!skb->skb_iif)
 		skb->skb_iif = skb->dev->ifindex;
+
+	/* zl added 2012-3-17 for mark downstream (traffic from wan interface)*/
+    if(skb->dev && (skb->dev->priv_flags & IFF_WAN_DEV))
+    {
+        skb->mark |= MASK_FOR_WAN2LAN;
+    }
+    /* end--added */
 
 	/*
 	 * bonding note: skbs received on inactive slaves should only
@@ -2863,11 +3046,23 @@ static int __netif_receive_skb(struct sk_buff *skb)
 	skb_reset_network_header(skb);
 	skb_reset_transport_header(skb);
 	skb->mac_len = skb->network_header - skb->mac_header;
+#if defined(CONFIG_SHORTCUT_FE) || defined(CONFIG_SHORTCUT_FE_MODULE)
+	rcu_read_lock();
 
+	fast_recv = rcu_dereference(athrs_fast_nat_recv);
+	if (fast_recv) {
+		if (fast_recv(skb)) {
+			ret = NET_RX_SUCCESS;
+			goto out;
+		}
+	}
+
+	pt_prev = NULL;
+#else
 	pt_prev = NULL;
 
 	rcu_read_lock();
-
+#endif
 #ifdef CONFIG_NET_CLS_ACT
 	if (skb->tc_verd & TC_NCLS) {
 		skb->tc_verd = CLR_TC_NCLS(skb->tc_verd);
@@ -3007,6 +3202,15 @@ static void flush_backlog(void *arg)
 			input_queue_head_incr(sd);
 		}
 	}
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+	skb_queue_walk_safe(&sd->input_mpkt_queue, skb, tmp) {
+		if (skb->dev == dev) {
+			__skb_unlink(skb, &sd->input_mpkt_queue);
+			kfree_skb(skb);
+			input_queue_head_incr(sd);
+		}
+	}
+#endif
 	rps_unlock(sd);
 
 	skb_queue_walk_safe(&sd->process_queue, skb, tmp) {
@@ -3343,10 +3547,24 @@ static void net_rps_action_and_irq_enable(struct softnet_data *sd)
 		local_irq_enable();
 }
 
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+static inline struct sk_buff *get_skb(struct sk_buff_head *list1, struct sk_buff_head *list2)
+{
+    struct sk_buff *skb = __skb_dequeue(list1);
+    if (!skb)
+        skb = __skb_dequeue(list2);
+    return skb;
+}
+#endif
+
 static int process_backlog(struct napi_struct *napi, int quota)
 {
 	int work = 0;
 	struct softnet_data *sd = container_of(napi, struct softnet_data, backlog);
+
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+    netdev_max_mbacklog = skb_queue_len(&sd->input_pkt_queue);
+#endif
 
 #ifdef CONFIG_RPS
 	/* Check if we have pending ipi, its better to send them now,
@@ -3363,7 +3581,11 @@ static int process_backlog(struct napi_struct *napi, int quota)
 		struct sk_buff *skb;
 		unsigned int qlen;
 
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+		while ((skb = get_skb(&sd->input_mpkt_queue, &sd->process_queue))) {
+#else
 		while ((skb = __skb_dequeue(&sd->process_queue))) {
+#endif
 			local_irq_enable();
 			__netif_receive_skb(skb);
 			local_irq_disable();
@@ -4203,6 +4425,29 @@ void dev_set_rx_mode(struct net_device *dev)
 	netif_addr_unlock_bh(dev);
 }
 
+/* zl added 2012-7-19 */
+unsigned int dev_get_privflags(const struct net_device *dev)
+{
+	return dev->priv_flags;
+}
+
+int dev_change_privflags(struct net_device *dev, unsigned int flags)
+{
+	int old_flags = dev->priv_flags;
+	
+	if ((old_flags ^ flags) & IFF_WAN_DEV) {
+	    if (old_flags & IFF_WAN_DEV){
+	        dev->priv_flags &= ~IFF_WAN_DEV;
+	    }
+	    else {
+	        dev->priv_flags |= IFF_WAN_DEV;
+	    }
+	}
+
+	return 0;
+}
+/* end--added */
+
 /**
  *	dev_get_flags - get flags reported to userspace
  *	@dev: device
@@ -4396,6 +4641,8 @@ int dev_set_mac_address(struct net_device *dev, struct sockaddr *sa)
 }
 EXPORT_SYMBOL(dev_set_mac_address);
 
+#define ifr_iflags ifr_ifru.ifru_ivalue /* xcl added for QoS, 20130422 */
+
 /*
  *	Perform the SIOCxIFxxx calls, inside rcu_read_lock()
  */
@@ -4408,6 +4655,12 @@ static int dev_ifsioc_locked(struct net *net, struct ifreq *ifr, unsigned int cm
 		return -ENODEV;
 
 	switch (cmd) {
+	/* zl added 2012-7-19 */
+    case SIOCGIFPRIVFLAGS:
+        ifr->ifr_iflags = dev_get_privflags(dev);
+        return 0;
+	/* end added */
+		
 	case SIOCGIFFLAGS:	/* Get interface flags */
 		ifr->ifr_flags = (short) dev_get_flags(dev);
 		return 0;
@@ -4478,6 +4731,10 @@ static int dev_ifsioc(struct net *net, struct ifreq *ifr, unsigned int cmd)
 	ops = dev->netdev_ops;
 
 	switch (cmd) {
+	/* zl added 2012-7-19 */
+    case SIOCSIFPRIVFLAGS:
+        return dev_change_privflags(dev, ifr->ifr_iflags);
+    /* end--added */ 	
 	case SIOCSIFFLAGS:	/* Set interface flags */
 		return dev_change_flags(dev, ifr->ifr_flags);
 
@@ -4623,6 +4880,9 @@ int dev_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 	 *	- atomic and do not require locking.
 	 *	- return a value
 	 */
+	/* zl added 2012-7-19 */
+	case SIOCGIFPRIVFLAGS:
+	/* end--added */ 
 	case SIOCGIFFLAGS:
 	case SIOCGIFMETRIC:
 	case SIOCGIFMTU:
@@ -4645,6 +4905,7 @@ int dev_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 		return ret;
 
 	case SIOCETHTOOL:
+#ifdef CONFIG_ETHTOOL
 		dev_load(net, ifr.ifr_name);
 		rtnl_lock();
 		ret = dev_ethtool(net, &ifr);
@@ -4657,7 +4918,9 @@ int dev_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 				ret = -EFAULT;
 		}
 		return ret;
-
+#else
+			return -EINVAL;
+#endif
 	/*
 	 *	These ioctl calls:
 	 *	- require superuser power.
@@ -4688,6 +4951,9 @@ int dev_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 	 *	- require strict serialization.
 	 *	- do not return a value
 	 */
+	/* zl added 2012-7-19 */
+	case SIOCSIFPRIVFLAGS:
+	/* end--added */ 
 	case SIOCSIFFLAGS:
 	case SIOCSIFMETRIC:
 	case SIOCSIFMTU:
@@ -5747,6 +6013,12 @@ static int dev_cpu_callback(struct notifier_block *nfb,
 		netif_rx(skb);
 		input_queue_head_incr(oldsd);
 	}
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+	while ((skb = __skb_dequeue(&oldsd->input_mpkt_queue))) {
+		netif_rx(skb);
+		input_queue_head_incr(oldsd);
+	}
+#endif
 
 	return NOTIFY_OK;
 }
@@ -6028,6 +6300,9 @@ static int __init net_dev_init(void)
 
 		memset(sd, 0, sizeof(*sd));
 		skb_queue_head_init(&sd->input_pkt_queue);
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+		skb_queue_head_init(&sd->input_mpkt_queue);
+#endif
 		skb_queue_head_init(&sd->process_queue);
 		sd->completion_queue = NULL;
 		INIT_LIST_HEAD(&sd->poll_list);

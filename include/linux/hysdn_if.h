@@ -1,4 +1,4 @@
-/* $Id: hysdn_if.h,v 1.1.8.3 2001/09/23 22:25:05 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/hysdn_if.h#1 $
  *
  * Linux driver for HYSDN cards
  * ioctl definitions shared by hynetmgr and driver.

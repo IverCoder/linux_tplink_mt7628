@@ -636,6 +636,7 @@ static int soc_pcm_prepare(struct snd_pcm_substream *substream)
 		}
 	}
 
+#ifndef CONFIG_SND_RALINK_SOC
 	if (platform->pcm_ops->prepare) {
 		ret = platform->pcm_ops->prepare(substream);
 		if (ret < 0) {
@@ -643,7 +644,7 @@ static int soc_pcm_prepare(struct snd_pcm_substream *substream)
 			goto out;
 		}
 	}
-
+#endif
 	if (codec_dai->ops->prepare) {
 		ret = codec_dai->ops->prepare(substream, codec_dai);
 		if (ret < 0) {
@@ -659,7 +660,15 @@ static int soc_pcm_prepare(struct snd_pcm_substream *substream)
 			goto out;
 		}
 	}
-
+#ifdef CONFIG_SND_RALINK_SOC
+	if (platform->pcm_ops->prepare) {
+		ret = platform->pcm_ops->prepare(substream);
+		if (ret < 0) {
+			printk(KERN_ERR "asoc: platform prepare error\n");
+			goto out;
+		}
+	}
+#endif
 	/* cancel any delayed stream shutdown that is pending */
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK &&
 	    codec_dai->pop_wait) {

@@ -37,7 +37,7 @@
  * String handling code courtesy of Gerard Roudier's <groudier@club-internet.fr>
  * sym driver.
  *
- * $Id: //depot/aic7xxx/linux/drivers/scsi/aic7xxx/aic79xx_proc.c#19 $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aic7xxx/aic79xx_proc.c#1 $
  */
 #include "aic79xx_osm.h"
 #include "aic79xx_inline.h"

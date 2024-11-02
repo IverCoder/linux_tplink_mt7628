@@ -1,5 +1,5 @@
 /*
- * $Id: sbe_promformat.h,v 2.2 2005/09/28 00:10:09 rickd PMCC4_3_1B $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/staging/cxt1e1/sbe_promformat.h#1 $
  */
 
 #ifndef _INC_SBE_PROMFORMAT_H_
@@ -25,9 +25,9 @@
  *
  *-----------------------------------------------------------------------------
  * RCS info:
- * RCS revision: $Revision: 2.2 $
- * Last changed on $Date: 2005/09/28 00:10:09 $
- * Changed by $Author: rickd $
+ * RCS revision: $Revision: #1 $
+ * Last changed on $Date: 2014/05/07 $
+ * Changed by $Author: red.hung $
  *-----------------------------------------------------------------------------
  * $Log: sbe_promformat.h,v $
  * Revision 2.2  2005/09/28 00:10:09  rickd

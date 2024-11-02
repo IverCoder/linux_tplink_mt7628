@@ -154,6 +154,16 @@ config USB_NET_AX8817X
 	  This driver creates an interface named "ethX", where X depends on
 	  what other networking devices you have in use.
 
+config USB_NET_AX8817X_NEW
+	bool "New driver to support new Gigabit ASIX chips"
+	depends on USB_NET_AX8817X
+	help
+
+config USB_NET_AX88179
+	bool "ASIX AX88179 USB 3.0 Gigabit Ethernet Adapters"
+	help
+
+
 config USB_NET_CDCETHER
 	tristate "CDC Ethernet support (smart devices such as cable modems)"
 	depends on USB_USBNET

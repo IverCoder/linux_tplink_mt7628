@@ -37,6 +37,14 @@ obj-$(CONFIG_SDH_BFIN)		+= bfin_sdh.o
 obj-$(CONFIG_MMC_SH_MMCIF)	+= sh_mmcif.o
 obj-$(CONFIG_MMC_JZ4740)	+= jz4740_mmc.o
 
+obj-$(CONFIG_MTK_MMC) += mtk-mmc/
+
+#obj-$(CONFIG_MTK_MMC) += mtk-mmc/dbg.o
+#obj-$(CONFIG_MTK_MMC) += mtk-mmc/sd.o mtk-mmc/mt6575_sd_misc.o mtk-mmc/board.o
+#ifeq ($(CONFIG_MTK_AEE_KDUMP),y)
+#obj-$(CONFIG_MTK_MMC) += mtk-mmc/sd_dump.o
+#endif
+
 obj-$(CONFIG_MMC_SDHCI_PLTFM)			+= sdhci-platform.o
 sdhci-platform-y				:= sdhci-pltfm.o
 sdhci-platform-$(CONFIG_MMC_SDHCI_CNS3XXX)	+= sdhci-cns3xxx.o

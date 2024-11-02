@@ -21,7 +21,7 @@
  *
  *
  *
- *  $Id: dabusb.c,v 1.54 2000/07/24 21:39:39 deti Exp $
+ *  $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/media/video/dabusb.c#1 $
  *
  */
 

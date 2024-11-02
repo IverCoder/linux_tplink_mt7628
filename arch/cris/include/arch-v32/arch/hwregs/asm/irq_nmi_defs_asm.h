@@ -8,7 +8,7 @@
  *     last modfied: Thu Jan 22 09:22:43 2004
  *
  *   by /n/asic/design/tools/rdesc/src/rdes2c -asm --outfile asm/irq_nmi_defs_asm.h ../../mod/irq_nmi.r
- *      id: $Id: irq_nmi_defs_asm.h,v 1.1 2005/04/24 18:31:04 starvik Exp $
+ *      id: $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/include/arch-v32/arch/hwregs/asm/irq_nmi_defs_asm.h#1 $
  * Any changes here will be lost.
  *
  * -*- buffer-read-only: t -*-

@@ -76,6 +76,8 @@
 #define IFF_MACVLAN_PORT	0x4000	/* device used as macvlan port */
 #define IFF_BRIDGE_PORT	0x8000		/* device used as bridge port */
 
+#define IFF_WAN_DEV	0x10000
+
 #define IF_GET_IFACE	0x0001		/* for querying only */
 #define IF_GET_PROTO	0x0002
 

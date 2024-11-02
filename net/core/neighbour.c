@@ -56,6 +56,12 @@
 
 #define PNEIGH_HASHMASK		0xF
 
+/* add by suweilin */
+#ifdef CONFIG_TP_NEW_SUPER_DMZ
+u16 (*sdmz_arp_destroy_hook)(struct neighbour *neigh) __read_mostly;
+EXPORT_SYMBOL_GPL(sdmz_arp_destroy_hook);
+#endif
+/* add end */
 static void neigh_timer_handler(unsigned long arg);
 static void __neigh_notify(struct neighbour *n, int type, int flags);
 static void neigh_update_notify(struct neighbour *neigh);
@@ -654,6 +660,13 @@ void neigh_destroy(struct neighbour *neigh)
 
 	NEIGH_PRINTK2("neigh %p is destroyed.\n", neigh);
 
+	/* add by suweilin */
+#ifdef CONFIG_TP_NEW_SUPER_DMZ
+	// add smart dmz hook
+	if(sdmz_arp_destroy_hook)
+		sdmz_arp_destroy_hook(neigh);
+#endif
+	/* add end */
 	atomic_dec(&neigh->tbl->entries);
 	kmem_cache_free(neigh->tbl->kmem_cachep, neigh);
 }

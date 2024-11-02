@@ -1,4 +1,4 @@
-/* $Id: diva_pci.h,v 1.6 2003/01/04 15:29:45 schindler Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/eicon/diva_pci.h#1 $ */
 
 #ifndef __DIVA_PCI_INTERFACE_H__
 #define __DIVA_PCI_INTERFACE_H__

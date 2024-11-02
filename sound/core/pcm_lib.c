@@ -2026,6 +2026,12 @@ static snd_pcm_sframes_t snd_pcm_lib_read1(struct snd_pcm_substream *substream,
 		return 0;
 
 	snd_pcm_stream_lock_irq(substream);
+	//printk("%s:size:%d thre:%d %s \n",__func__,size,runtime->start_threshold,(runtime->status->state == SNDRV_PCM_STATE_PREPARED)?"prepared":\
+				(runtime->status->state == SNDRV_PCM_STATE_DRAINING)?"draining":\
+					(runtime->status->state == SNDRV_PCM_STATE_RUNNING)?"RUNNING":\
+							(runtime->status->state == SNDRV_PCM_STATE_PAUSED)?"PAUSED":\
+									(runtime->status->state == SNDRV_PCM_STATE_XRUN)?"XRUN":\
+											(runtime->status->state == SNDRV_PCM_STATE_SUSPENDED)?"SUSPENDED":"others");
 	switch (runtime->status->state) {
 	case SNDRV_PCM_STATE_PREPARED:
 		if (size >= runtime->start_threshold) {

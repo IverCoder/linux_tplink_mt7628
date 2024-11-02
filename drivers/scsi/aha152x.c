@@ -13,7 +13,7 @@
  * General Public License for more details.
  *
  *
- * $Id: aha152x.c,v 2.7 2004/01/24 11:42:59 fischer Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aha152x.c#1 $
  *
  * $Log: aha152x.c,v $
  * Revision 2.7  2004/01/24 11:42:59  fischer

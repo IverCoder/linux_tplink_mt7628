@@ -1,4 +1,4 @@
-/* $Id: memmove.S,v 1.2 2001/07/27 11:51:09 gniibe Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/sh/lib/memmove.S#1 $
  *
  * "memmove" implementation of SuperH
  *

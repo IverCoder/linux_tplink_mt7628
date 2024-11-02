@@ -26,6 +26,8 @@
 #include <net/netfilter/nf_nat_core.h>
 #include <net/netfilter/nf_nat_rule.h>
 
+#include <linux/inetdevice.h> /* zl added for NAT-loopback from WR841N 2011-11-10 */
+
 #define NAT_VALID_HOOKS ((1 << NF_INET_PRE_ROUTING) | \
 			 (1 << NF_INET_POST_ROUTING) | \
 			 (1 << NF_INET_LOCAL_OUT) | \
@@ -55,6 +57,24 @@ ipt_snat_target(struct sk_buff *skb, const struct xt_action_param *par)
 	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
 			    ctinfo == IP_CT_RELATED + IP_CT_IS_REPLY));
 	NF_CT_ASSERT(par->out != NULL);
+
+	/* added by xcl for Nat loopback, 2013.02.05 */ 
+	if (par->out->name[0] == 'b' && par->out->name[1] == 'r')
+	{
+		__be32 out_mask = ((struct in_device *)par->out->ip_ptr)->ifa_list->ifa_mask; 
+		/* we only care about the NAT-LoopBack:  
+		 * 1) out interface is br+
+		 * 1) src addr and dst addr are in the same subnet 
+		 * 3) DNATed  
+		 */ 
+		struct iphdr *iph = ip_hdr(skb);
+		if ((iph->saddr & out_mask ) != (iph->daddr & out_mask) || 
+			(!test_bit(IPS_DST_NAT_BIT, &ct->status) || !test_bit(IPS_DST_NAT_DONE_BIT, &ct->status))) 
+		{
+			return IPT_CONTINUE; 
+		}
+	}
+	/* end added */
 
 	return nf_nat_setup_info(ct, &mr->range[0], IP_NAT_MANIP_SRC);
 }

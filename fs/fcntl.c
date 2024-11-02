@@ -446,7 +446,8 @@ SYSCALL_DEFINE3(fcntl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)
  	fput(filp);
 out:
 	return err;
-}
+} 
+EXPORT_SYMBOL(sys_fcntl);
 
 #if BITS_PER_LONG == 32
 SYSCALL_DEFINE3(fcntl64, unsigned int, fd, unsigned int, cmd,

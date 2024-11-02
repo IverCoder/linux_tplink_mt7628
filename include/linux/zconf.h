@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* @(#) $Id$ */
+/* @(#) $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/zconf.h#1 $ */
 
 #ifndef _ZCONF_H
 #define _ZCONF_H

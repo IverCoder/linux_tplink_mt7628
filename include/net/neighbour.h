@@ -110,6 +110,7 @@ struct neighbour {
 	int			(*output)(struct sk_buff *skb);
 	struct sk_buff_head	arp_queue;
 	struct timer_list	timer;
+	struct timeval      time_record; /* Record the time of GARP send */
 	const struct neigh_ops	*ops;
 	u8			primary_key[0];
 };

@@ -84,7 +84,16 @@ struct nf_conn_help {
 	/* Current number of expected connections */
 	u8 expecting[NF_CT_MAX_EXPECT_CLASSES];
 };
+#define INCLUDE_TP_CLOUD	(0)
 
+/* added by CCy for wportal modules. When you open bandwidth control, you must remove ctf.ko, 
+   that is when this flag is used. This flag prevent you from handle every packet of a conntract. 
+   With this flag, you can only handle the first packet of a conntract, so you won't cause  
+   throughput to decrease dramatically. */
+#if INCLUDE_TP_CLOUD
+#define WPORTAL_FLAG_HANDLED (1 << 0) 								
+#define WPORTAL_FLAG_NEED_REPLACE 		(1 << 1)
+#endif
 #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
 #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
 
@@ -116,6 +125,22 @@ struct nf_conn {
 	u_int32_t secmark;
 #endif
 
+#if defined(CONFIG_NETFILTER_XT_MATCH_LAYER7) || \
+    defined(CONFIG_NETFILTER_XT_MATCH_LAYER7_MODULE)
+	struct {
+		/*
+		 * e.g. "http". NULL before decision. "unknown" after decision
+		 * if no match.
+		 */
+		char *app_proto;
+		/*
+		 * application layer data so far. NULL after match decision.
+		 */
+		char *app_data;
+		unsigned int app_data_len;
+	} layer7;
+#endif
+
 	/* Storage reserved for other modules: */
 	union nf_conntrack_proto proto;
 
@@ -123,6 +148,9 @@ struct nf_conn {
 	struct nf_ct_ext *ext;
 #ifdef CONFIG_NET_NS
 	struct net *ct_net;
+#endif
+#if INCLUDE_TP_CLOUD
+	u_int8_t wportal_flag; /* added by CCy for wportal modules, transplanted from C9. */
 #endif
 };
 
@@ -252,6 +280,12 @@ static inline bool nf_ct_kill(struct nf_conn *ct)
 }
 
 /* These are for NAT.  Icky. */
+/* Update TCP window tracking data when NAT mangles the packet */
+extern void nf_conntrack_tcp_update(const struct sk_buff *skb,
+				    unsigned int dataoff,
+				    struct nf_conn *ct, int dir,
+				    s16 offset);
+
 extern s16 (*nf_ct_nat_offset)(const struct nf_conn *ct,
 			       enum ip_conntrack_dir dir,
 			       u32 seq);

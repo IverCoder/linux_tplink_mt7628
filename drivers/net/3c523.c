@@ -84,7 +84,7 @@
    Nov 2001
    added support for ethtool (jgarzik)
 
-   $Header: /fsys2/home/chrisb/linux-1.3.59-MCA/drivers/net/RCS/3c523.c,v 1.1 1996/02/05 01:53:46 chrisb Exp chrisb $
+   $Header: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/3c523.c#1 $
  */
 
 #define DRV_NAME		"3c523"

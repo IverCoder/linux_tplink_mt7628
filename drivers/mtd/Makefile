@@ -30,6 +30,10 @@ obj-$(CONFIG_MTD_OOPS)		+= mtdoops.o
 nftl-objs		:= nftlcore.o nftlmount.o
 inftl-objs		:= inftlcore.o inftlmount.o
 
-obj-y		+= chips/ lpddr/ maps/ devices/ nand/ onenand/ tests/
+obj-y		+= chips/ lpddr/ maps/ devices/ onenand/ tests/ ralink/
+ifeq ($(CONFIG_RALINK_MT7621), y)
+obj-$(CONFIG_MTK_MTD_NAND) += nand/
+obj-$(CONFIG_MTD_ANY_RALINK) += nand/
+endif
 
 obj-$(CONFIG_MTD_UBI)		+= ubi/

@@ -70,6 +70,7 @@
 #include <asm/byteorder.h>
 #include <asm/unaligned.h>
 #include <linux/list.h>
+#include <linux/seq_file.h>
 
 #include "cdc-acm.h"
 
@@ -823,6 +824,49 @@ static int acm_tty_ioctl(struct tty_struct *tty, struct file *file,
 
 	return -ENOIOCTLCMD;
 }
+
+/* Added by zjj, 20130530, transplanted from 8970V1, kernel 2.6.32. start-->*/
+static int acm_proc_show(struct seq_file *m, void *v)
+{
+	struct acm *acm;
+	int i;
+	int ifIndex = -1;
+
+	dbg("%s", __FUNCTION__);
+	mutex_lock(&open_mutex);
+	for (i = 0; i < ACM_TTY_MINORS; ++i) {
+		acm = acm_table[i];
+		if (acm)
+			mutex_lock(&acm->mutex);
+		if (acm == NULL)
+			continue;
+		seq_printf (m, "ttyIndex:%d", i);
+		seq_printf (m, " vendor:%04x product:%04x", 
+				   le16_to_cpu(acm->dev->descriptor.idVendor), 
+				   le16_to_cpu(acm->dev->descriptor.idProduct));
+		ifIndex = acm->control->cur_altsetting->desc.bInterfaceNumber;
+		seq_printf (m, " ifIndex:%d", ifIndex);
+		seq_putc (m, '\n');
+		mutex_unlock(&acm->mutex);
+	}
+	mutex_unlock(&open_mutex);
+	return 0;
+
+}
+
+static int acm_proc_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, acm_proc_show, NULL);
+}
+
+static const struct file_operations acm_proc_fops = {
+	.owner		= THIS_MODULE,
+	.open		= acm_proc_open,
+	.read		= seq_read,
+	.llseek		= seq_lseek,
+	.release	= single_release,
+};
+/* <--Ended by zjj. */
 
 static const __u32 acm_tty_speed[] = {
 	0, 50, 75, 110, 134, 150, 200, 300, 600,
@@ -1672,6 +1716,7 @@ static const struct tty_operations acm_ops = {
 	.set_termios =		acm_tty_set_termios,
 	.tiocmget =		acm_tty_tiocmget,
 	.tiocmset =		acm_tty_tiocmset,
+	.proc_fops =		&acm_proc_fops, /*Added by zjj, 20130530, transplanted from 8970.*/
 };
 
 /*

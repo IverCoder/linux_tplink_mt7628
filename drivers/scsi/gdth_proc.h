@@ -2,7 +2,7 @@
 #define _GDTH_PROC_H
 
 /* gdth_proc.h 
- * $Id: gdth_proc.h,v 1.16 2004/01/14 13:09:01 achim Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/gdth_proc.h#1 $
  */
 
 int gdth_execute(struct Scsi_Host *shost, gdth_cmd_str *gdtcmd, char *cmnd,

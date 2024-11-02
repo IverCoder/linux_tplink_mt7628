@@ -1,4 +1,4 @@
-/* $Id: jade.c,v 1.9.2.4 2004/01/14 16:04:48 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/jade.c#1 $
  *
  * JADE stuff (derived from original hscx.c)
  *

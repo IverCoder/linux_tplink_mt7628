@@ -107,6 +107,17 @@
 #include <net/xfrm.h>
 #include "udp_impl.h"
 
+#if  defined(CONFIG_RA_HW_NAT) || defined(CONFIG_RA_HW_NAT_MODULE)
+#include "../nat/hw_nat/ra_nat.h"
+#endif
+
+/*
+ * brief: Added by LI CHENGLONG, 2012 Feb 27 02:45:14 PM
+ *		  port defined by UPNP protocol. 
+ */
+#define TP_UPNP_PORT 1900
+
+
 struct udp_table udp_table __read_mostly;
 EXPORT_SYMBOL(udp_table);
 
@@ -1561,6 +1572,91 @@ static inline int udp4_csum_init(struct sk_buff *skb, struct udphdr *uh,
 }
 
 /*
+ * fn		static int __udp4_lib_bulk_deliver(struct net *net,
+ *                                             struct sk_buff *skb, 
+ *                                             struct udphdr  *uh, 
+ *                                             __be32 saddr,  
+ *                                             __be32 daddr, 
+ *                                             struct udp_table *udptable) 
+ * brief		???????????uh->dest?????udp???? 
+ * details		?????????uh->dest?????udp?????????ио??? 
+ * 
+ * param[in]	net         pointer to net.
+ * param[in]	skb	        pointer to sk_buff that hold the data. 
+ * param[in]	uh		    udp header. 
+ * param[in]	saddr		source addr of the udp packet. 
+ * param[in]	daddr		dest addr of the udp packet. 
+ * param[in]	udptable	hash table that hold the socket. 
+ * 
+ * return		errcode 
+ * retval		0	       success(always success).
+ *
+ * note	written by  25May12, LI CHENGLONG	 
+ */
+static int __udp4_lib_bulk_deliver(struct net *net,
+                                   struct sk_buff *skb,
+                                   struct udphdr  *uh,
+                                   __be32 saddr,
+                                   __be32 daddr,
+				                   struct udp_table *udptable
+			                      )
+{	
+	int dif;
+	int ret;
+	struct sock *sk;
+    struct hlist_nulls_node *node;
+	struct udp_hslot *hslot = udp_hashslot(udptable, net, ntohs(uh->dest));
+
+	spin_lock(&hslot->lock);
+
+    sk = sk_nulls_head(&hslot->head);
+	dif = skb->dev->ifindex;
+
+	sk_nulls_for_each_from(sk, node)
+	{		
+		struct inet_sock *inet = inet_sk(sk);
+		
+		/*s->sk_hash???з╪??????????,by LI CHENGLONG 2012-Feb-27*/
+		if (!net_eq(sock_net(sk), net) ||
+            (udp_sk(sk)->udp_port_hash != ntohs(uh->dest))||	    
+			(inet->inet_daddr && inet->inet_daddr != saddr)||
+			(inet->inet_dport != uh->source && inet->inet_dport)||
+			(inet->inet_rcv_saddr && inet->inet_rcv_saddr != daddr)||
+			ipv6_only_sock(sk)||
+			(sk->sk_bound_dev_if && sk->sk_bound_dev_if != dif))
+		{
+			continue;
+		}
+		/*match, then deliver it to up layer, Added by LI CHENGLONG , 2012-Feb-27.*/	
+		else
+		{
+			struct sk_buff *skb1 = NULL;
+			
+			/*copy skb, Added by LI CHENGLONG , 2012-Feb-27.*/	
+			skb1 = skb_clone(skb, GFP_ATOMIC);
+
+			/*copy success, then deliver to sock, Added by LI CHENGLONG , 2012-Feb-27.*/
+			if (skb1)
+			{
+				ret = udp_queue_rcv_skb(sk, skb1);
+				if (ret > 0)
+				{
+					kfree_skb(skb1);
+				}
+			}
+		}
+	}
+
+	/*free skb, no one use it any more. Added by LI CHENGLONG , 2012-Feb-27.*/
+	kfree_skb(skb);
+
+	spin_unlock(&hslot->lock);
+
+	return 0;
+}
+
+
+/*
  *	All we need to do is get the socket, and then do a checksum.
  */
 
@@ -1601,6 +1697,15 @@ int __udp4_lib_rcv(struct sk_buff *skb, struct udp_table *udptable,
 	if (rt->rt_flags & (RTCF_BROADCAST|RTCF_MULTICAST))
 		return __udp4_lib_mcast_deliver(net, skb, uh,
 				saddr, daddr, udptable);
+
+	/* 	 
+	 * brief: Added by LI CHENGLONG, 2012-Feb-27.	 
+	 *		  ????TP_UPNP_PORT??socket??????????????.	 
+	 */	
+	if (ntohs(uh->dest) == TP_UPNP_PORT)	
+	{
+		return __udp4_lib_bulk_deliver(net, skb, uh, saddr, daddr, udptable);
+	}
 
 	sk = __udp4_lib_lookup_skb(skb, uh->source, uh->dest, udptable);
 
@@ -1665,6 +1770,15 @@ drop:
 
 int udp_rcv(struct sk_buff *skb)
 {
+#if  defined(CONFIG_RA_HW_NAT) || defined(CONFIG_RA_HW_NAT_MODULE)
+	if( IS_SPACE_AVAILABLED(skb) &&
+			((FOE_MAGIC_TAG(skb) == FOE_MAGIC_PCI) ||
+			 (FOE_MAGIC_TAG(skb) == FOE_MAGIC_WLAN) ||
+			 (FOE_MAGIC_TAG(skb) == FOE_MAGIC_GE))){
+		FOE_ALG(skb)=1;
+	}
+#endif
+
 	return __udp4_lib_rcv(skb, &udp_table, IPPROTO_UDP);
 }
 

@@ -8,7 +8,7 @@
    subject to change. Applications should only use zlib.h.
  */
 
-/* @(#) $Id: zutil.h,v 1.1 2000/01/01 03:32:23 davem Exp $ */
+/* @(#) $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/zutil.h#1 $ */
 
 #ifndef _Z_UTIL_H
 #define _Z_UTIL_H

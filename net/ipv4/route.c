@@ -1525,7 +1525,7 @@ void ip_rt_send_redirect(struct sk_buff *skb)
 {
 	struct rtable *rt = skb_rtable(skb);
 	struct in_device *in_dev;
-	int log_martians;
+	int log_martians __maybe_unused;
 
 	rcu_read_lock();
 	in_dev = __in_dev_get_rcu(rt->dst.dev);

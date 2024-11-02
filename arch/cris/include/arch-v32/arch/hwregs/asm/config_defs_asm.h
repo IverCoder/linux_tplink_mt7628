@@ -8,7 +8,7 @@
  *     last modfied: Thu Mar  4 12:34:39 2004
  *
  *   by /n/asic/design/tools/rdesc/src/rdes2c -asm --outfile asm/config_defs_asm.h ../../rtl/config_regs.r
- *      id: $Id: config_defs_asm.h,v 1.1 2005/04/24 18:31:04 starvik Exp $
+ *      id: $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/include/arch-v32/arch/hwregs/asm/config_defs_asm.h#1 $
  * Any changes here will be lost.
  *
  * -*- buffer-read-only: t -*-

@@ -1,5 +1,5 @@
 /*
- * $Id: kernelcapi.h,v 1.8.6.2 2001/02/07 11:31:31 kai Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/kernelcapi.h#1 $
  * 
  * Kernel CAPI 2.0 Interface for Linux
  * 

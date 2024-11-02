@@ -13,6 +13,9 @@
 #define MARK_AND_VALUE (0xffffffd0)
 #define MARK_XOR_VALUE (0xffffffc0)
 
+#define VLAN_8021P_SET_VALUE (0xffffffb0) /* zl added for 802.1p remark, 2013-1-6 */
+#define VLAN_8021P_AUTO_SET  (0xffffffa0) /* zl added for 802.1p auto remark, 2013-1-6 */
+
 struct ebt_mark_t_info {
 	unsigned long mark;
 	/* EBT_ACCEPT, EBT_DROP, EBT_CONTINUE or EBT_RETURN */

@@ -172,6 +172,13 @@ struct ipv6_devconf {
 	__s32		disable_ipv6;
 	__s32		accept_dad;
 	__s32		force_tllao;
+#ifdef CONFIG_IPV6_ROUTER_WAN_SLAAC	/* Add by HYY, 16Apr13 */
+	char		slaac_addr[48];
+#endif	
+	__s32		sendrs;
+#ifdef CONFIG_IPV6_ROUTER_WAN_AUTO 
+    __s32       mflag;
+#endif
 	void		*sysctl;
 };
 

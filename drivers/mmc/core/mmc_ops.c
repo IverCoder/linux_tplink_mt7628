@@ -352,6 +352,7 @@ int mmc_send_ext_csd(struct mmc_card *card, u8 *ext_csd)
 	return mmc_send_cxd_data(card, card->host, MMC_SEND_EXT_CSD,
 			ext_csd, 512);
 }
+EXPORT_SYMBOL(mmc_send_ext_csd);
 
 int mmc_spi_read_ocr(struct mmc_host *host, int highcap, u32 *ocrp)
 {
@@ -433,6 +434,7 @@ int mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value)
 
 	return 0;
 }
+EXPORT_SYMBOL(mmc_switch);
 
 int mmc_send_status(struct mmc_card *card, u32 *status)
 {

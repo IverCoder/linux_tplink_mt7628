@@ -1,5 +1,5 @@
 /*
- *	$Header: /cvsroot/osst/Driver/osst.h,v 1.16 2005/01/01 21:13:35 wriede Exp $
+ *	$Header: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/osst.h#1 $
  */
 
 #include <asm/byteorder.h>

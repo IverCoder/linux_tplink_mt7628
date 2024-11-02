@@ -188,7 +188,7 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
 # Default value for CROSS_COMPILE is not to prefix executables
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 export KBUILD_BUILDHOST := $(SUBARCH)
-ARCH		?= $(SUBARCH)
+ARCH		?= mips
 CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
 
 # Architecture as present in compile.h
@@ -878,6 +878,14 @@ modpost-init := $(filter-out init/built-in.o, $(vmlinux-init))
 vmlinux.o: $(modpost-init) $(vmlinux-main) FORCE
 	$(call if_changed_rule,vmlinux-modpost)
 
+#add by wanghao for Archer C2
+linux.7z: vmlinux
+#	$(STRIP) -o vmlinux.strip vmlinux
+	$(OBJCOPY) -O binary vmlinux linux.bin
+	#lzma_new port from ar9331, yuanshang, 2013-10-31
+	../tools/lzma_new e linux.bin linux.7z
+#add end	
+	
 # The actual objects are generated when descending, 
 # make sure no implicit rule kicks in
 $(sort $(vmlinux-init) $(vmlinux-main)) $(vmlinux-lds): $(vmlinux-dirs) ;
@@ -895,7 +903,7 @@ $(vmlinux-dirs): prepare scripts
 # Store (new) KERNELRELASE string in include/config/kernel.release
 include/config/kernel.release: include/config/auto.conf FORCE
 	$(Q)rm -f $@
-	$(Q)echo "$(KERNELVERSION)$$($(CONFIG_SHELL) $(srctree)/scripts/setlocalversion $(srctree))" > $@
+	$(Q)echo "$(KERNELVERSION)" > $@
 
 
 # Things we need to do before we recursively start building the kernel
@@ -1080,7 +1088,8 @@ _modinst_:
 PHONY += _modinst_post
 _modinst_post: _modinst_
 	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.fwinst obj=firmware __fw_modinst
-	$(call cmd,depmod)
+	$(call cmd,$(DEPMOD))
+	#$(call cmd,depmod)
 
 else # CONFIG_MODULES
 

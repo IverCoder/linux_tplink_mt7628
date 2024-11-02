@@ -63,6 +63,10 @@ static const char *const xt_prefix[NFPROTO_NUMPROTO] = {
 	[NFPROTO_IPV6]   = "ip6",
 };
 
+/* add by wangwenhao for massurl 2011-10-25 */	
+IPT_HOOK_PTR ipt_ctl_hook_url = NULL;
+/* add end */
+
 /* Allow this many total (re)entries. */
 static const unsigned int xt_jumpstack_multiplier = 2;
 
@@ -542,6 +546,8 @@ int xt_check_target(struct xt_tgchk_param *par,
 		       XT_ALIGN(par->target->targetsize), size);
 		return -EINVAL;
 	}
+	/* delete by yangxv for Qos, 2008.06.10 */
+#if 0
 	if (par->target->table != NULL &&
 	    strcmp(par->target->table, par->table) != 0) {
 		pr_err("%s_tables: %s target: only valid in %s table, not %s\n",
@@ -549,6 +555,7 @@ int xt_check_target(struct xt_tgchk_param *par,
 		       par->target->table, par->table);
 		return -EINVAL;
 	}
+#endif
 	if (par->target->hooks && (par->hook_mask & ~par->target->hooks) != 0) {
 		char used[64], allow[64];
 

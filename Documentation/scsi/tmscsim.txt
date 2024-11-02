@@ -446,4 +446,4 @@ development and maintenance. Special thanks!
 -------------------------------------------------------------------------
 Written by Kurt Garloff <kurt@garloff.de> 1998/06/11
 Last updated 2000/11/28, driver revision 2.0e7
-$Id: README.tmscsim,v 2.25.2.7 2000/12/20 01:07:12 garloff Exp $
+$Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/Documentation/scsi/tmscsim.txt#1 $

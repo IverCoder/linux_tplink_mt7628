@@ -1679,6 +1679,13 @@ static int ip_mr_forward(struct net *net, struct mr_table *mrt,
 	mrt->vif_table[vif].pkt_in++;
 	mrt->vif_table[vif].bytes_in += skb->len;
 
+	if (ip_hdr(skb)->protocol != IPPROTO_IGMP && ip_hdr(skb)->ttl <= 1 && strncmp(skb->dev->name, "br", strlen("br")) )
+	{
+		ip_hdr(skb)->ttl = 2;
+		ip_hdr(skb)->check = 0;
+		ip_hdr(skb)->check = ip_fast_csum(skb_network_header(skb), ip_hdr(skb)->ihl);
+	}
+
 	/*
 	 *	Forward the frame
 	 */
@@ -1777,7 +1784,7 @@ int ip_mr_input(struct sk_buff *skb)
 		}
 
 		vif = ipmr_find_vif(mrt, skb->dev);
-		if (vif >= 0) {
+		if (vif >= 0 && local) {
 			int err2 = ipmr_cache_unresolved(mrt, vif, skb);
 			read_unlock(&mrt_lock);
 

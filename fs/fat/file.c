@@ -182,6 +182,12 @@ static int fat_cont_expand(struct inode *inode, loff_t size)
 	struct address_space *mapping = inode->i_mapping;
 	loff_t start = inode->i_size, count = size - inode->i_size;
 	int err;
+	
+	/* Add by zjj, 13Apr12, it will take a long time to expand, which will result in time out for samba 
+	when writing a big file to the fat32 volume */
+	err = 0;
+	goto out;
+	/*Add end*/
 
 	err = generic_cont_expand_simple(inode, size);
 	if (err)

@@ -88,6 +88,19 @@
 			printk(_lvl "L2TP: " _fmt, ##args);		\
 	} while (0)
 
+/*add by wanghao*/
+#if defined (CONFIG_RA_HW_NAT_PPTP_L2TP)
+uint32_t l2tp_fast_path = 0;
+uint32_t sync_tx_sequence = 0;
+uint32_t pptp_fast_path = 0;
+int log_level=0;
+EXPORT_SYMBOL(log_level); 
+EXPORT_SYMBOL(sync_tx_sequence); 
+EXPORT_SYMBOL(pptp_fast_path);
+EXPORT_SYMBOL(l2tp_fast_path);
+#endif
+/*add end*/
+
 /* Private data stored for received packets in the skb.
  */
 struct l2tp_skb_cb {
@@ -365,6 +378,7 @@ static void l2tp_recv_dequeue(struct l2tp_session *session)
 	 * expect to send up next, dequeue it and any other
 	 * in-sequence packets behind it.
 	 */
+start:
 	spin_lock_bh(&session->reorder_q.lock);
 	skb_queue_walk_safe(&session->reorder_q, skb, tmp) {
 		if (time_after(jiffies, L2TP_SKB_CB(skb)->expires)) {
@@ -401,7 +415,7 @@ static void l2tp_recv_dequeue(struct l2tp_session *session)
 		 */
 		spin_unlock_bh(&session->reorder_q.lock);
 		l2tp_recv_dequeue_skb(session, skb);
-		spin_lock_bh(&session->reorder_q.lock);
+		goto start;
 	}
 
 out:
@@ -992,6 +1006,7 @@ static inline void l2tp_skb_set_owner_w(struct sk_buff *skb, struct sock *sk)
 /* If caller requires the skb to have a ppp header, the header must be
  * inserted in the skb data before calling this function.
  */
+#define NET_SKB_PAD_ORIG	max(32, L1_CACHE_BYTES)
 int l2tp_xmit_skb(struct l2tp_session *session, struct sk_buff *skb, int hdr_len)
 {
 	int data_len = skb->len;
@@ -1010,7 +1025,7 @@ int l2tp_xmit_skb(struct l2tp_session *session, struct sk_buff *skb, int hdr_len
 	 * UDP and L2TP headers. If not enough, expand it to
 	 * make room. Adjust truesize.
 	 */
-	headroom = NET_SKB_PAD + sizeof(struct iphdr) +
+	headroom = NET_SKB_PAD_ORIG + sizeof(struct iphdr) +
 		uhlen + hdr_len;
 	old_headroom = skb_headroom(skb);
 	if (skb_cow_head(skb, headroom))
@@ -1321,7 +1336,12 @@ int l2tp_tunnel_create(struct net *net, int fd, int version, u32 tunnel_id, u32 
 			goto err;
 		}
 	}
-
+/*goto:l2tp fast path*/
+#if defined (CONFIG_RA_HW_NAT_PPTP_L2TP)
+	l2tp_fast_path = 1;
+	pptp_fast_path = 0;
+	//printk("l2tp_tunnel_create L2TP core driver, %s!!!!!!!!!!!1\n", L2TP_DRV_VERSION);
+#endif
 	sk = sock->sk;
 
 	if (cfg != NULL)
@@ -1430,6 +1450,10 @@ int l2tp_tunnel_delete(struct l2tp_tunnel *tunnel)
 	int err = 0;
 	struct socket *sock = tunnel->sock ? tunnel->sock->sk_socket : NULL;
 
+#if defined (CONFIG_RA_HW_NAT_PPTP_L2TP)
+	l2tp_fast_path = 0;
+	printk("l2tp_tunnel_delete L2TP core driver, %s!!!!!!!!!!!1\n", L2TP_DRV_VERSION);
+#endif
 	/* Force the tunnel socket to close. This will eventually
 	 * cause the tunnel to be deleted via the normal socket close
 	 * mechanisms when userspace closes the tunnel socket.

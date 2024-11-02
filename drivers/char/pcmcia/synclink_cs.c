@@ -1,7 +1,7 @@
 /*
  * linux/drivers/char/pcmcia/synclink_cs.c
  *
- * $Id: synclink_cs.c,v 4.34 2005/09/08 13:20:54 paulkf Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/char/pcmcia/synclink_cs.c#1 $
  *
  * Device driver for Microgate SyncLink PC Card
  * multiprotocol serial adapter.
@@ -459,7 +459,7 @@ module_param_array(maxframe, int, NULL, 0);
 MODULE_LICENSE("GPL");
 
 static char *driver_name = "SyncLink PC Card driver";
-static char *driver_version = "$Revision: 4.34 $";
+static char *driver_version = "$Revision: #1 $";
 
 static struct tty_driver *serial_driver;
 

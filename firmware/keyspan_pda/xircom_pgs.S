@@ -1,4 +1,4 @@
-/*  $Id: loop.s,v 1.23 2000/03/20 09:49:06 warner Exp $
+/*  $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/firmware/keyspan_pda/xircom_pgs.S#1 $
  * 
  *  Firmware for the Keyspan PDA Serial Adapter, a USB serial port based on
  *  the EzUSB microcontroller.

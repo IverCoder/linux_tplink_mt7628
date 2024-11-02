@@ -8,7 +8,7 @@
  *     last modfied: Mon Apr 11 16:10:19 2005
  *
  *   by /n/asic/design/tools/rdesc/src/rdes2c --outfile iop_sw_mpu_defs.h ../../inst/io_proc/rtl/guinness/iop_sw_mpu.r
- *      id: $Id: iop_sw_mpu_defs.h,v 1.4 2005/04/24 18:31:05 starvik Exp $
+ *      id: $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/include/arch-v32/arch/hwregs/iop/iop_sw_mpu_defs.h#1 $
  * Any changes here will be lost.
  *
  * -*- buffer-read-only: t -*-

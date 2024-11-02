@@ -1,4 +1,4 @@
-/* $Id: isar.c,v 1.22.2.6 2004/02/11 13:21:34 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/isar.c#1 $
  *
  * isar.c   ISAR (Siemens PSB 7110) specific routines
  *

@@ -11,7 +11,7 @@
  *      of the GNU General Public License, incorporated herein by reference.
  *
  *
- * 	$Id: xircom_cb.c,v 1.33 2001/03/19 14:02:07 arjanv Exp $
+ * 	$Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/tulip/xircom_cb.c#1 $
  */
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt

@@ -34,7 +34,7 @@ GNU General Public License for more details.
 This section contains comments describing changes made to this file.
 Notice that changes are listed in reverse chronological order.
 
-$Header: //source/qcom/qct/multimedia2/Audio/drivers/QDSP5Driver/QDSP5Interface/main/latest/qdsp5audppcmdi.h#2 $
+$Header: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/staging/dream/include/mach/qdsp5/qdsp5audppcmdi.h#1 $
 
 ===========================================================================*/
 

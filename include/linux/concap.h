@@ -1,4 +1,4 @@
-/* $Id: concap.h,v 1.3.2.2 2004/01/12 23:08:35 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/concap.h#1 $
  *
  * Copyright 1997 by Henner Eisen <eis@baty.hanse.de>
  *

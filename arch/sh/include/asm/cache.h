@@ -1,4 +1,4 @@
-/* $Id: cache.h,v 1.6 2004/03/11 18:08:05 lethal Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/sh/include/asm/cache.h#1 $
  *
  * include/asm-sh/cache.h
  *

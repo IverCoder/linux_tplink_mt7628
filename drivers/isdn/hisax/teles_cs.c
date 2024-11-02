@@ -1,4 +1,4 @@
-/* $Id: teles_cs.c,v 1.1.2.2 2004/01/25 15:07:06 keil Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/teles_cs.c#1 $ */
 /*======================================================================
 
     A teles S0 PCMCIA client driver

@@ -101,6 +101,27 @@
 #define PPP_FCS(fcs, c) crc_ccitt_byte(fcs, c)
 #endif
 
+#ifdef CONFIG_REPLY_LCP_AT_KERNEL
+#define LCP_CODE_CFG_REQ (1)
+#define LCP_CODE_CFG_ACK (2)
+#define LCP_CODE_ECHO_REQUEST (9)
+#define LCP_CODE_ECHO_REPLY   (10)
+
+#define LCP_CFG_OPT_MAGIC (5)
+
+struct lcp_head {
+	__u8 code;
+	__u8 id;
+	__u16 length;
+};
+
+struct lcp_cfg_option {
+	__u8 type;
+	__u8 length;
+	__u8 data[0];
+};
+#endif
+
 /*
  * Extended asyncmap - allows any character to be escaped.
  */

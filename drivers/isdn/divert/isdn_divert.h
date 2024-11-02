@@ -1,4 +1,4 @@
-/* $Id: isdn_divert.h,v 1.5.6.1 2001/09/23 22:24:36 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/divert/isdn_divert.h#1 $
  *
  * Header for the diversion supplementary ioctl interface.
  *

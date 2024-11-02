@@ -8,7 +8,7 @@
  * Contributors:
  *	Wang Zhenyu at intel.com
  *
- * $Id: edac_i82875p.c,v 1.5.2.11 2005/10/05 00:43:44 dsp_llnl Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/edac/i82875p_edac.c#1 $
  *
  * Note: E7210 appears same as D82875P - zhenyu.z.wang at intel.com
  */

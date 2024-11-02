@@ -412,7 +412,8 @@ static void __exit cfi_probe_exit(void)
 	unregister_mtd_chip_driver(&cfi_chipdrv);
 }
 
-module_init(cfi_probe_init);
+fs_initcall(cfi_probe_init);
+//module_init(cfi_probe_init);
 module_exit(cfi_probe_exit);
 
 MODULE_LICENSE("GPL");

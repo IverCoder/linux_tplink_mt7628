@@ -1,4 +1,4 @@
-/* $Id: um_idi.c,v 1.14 2004/03/21 17:54:37 armin Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/eicon/um_idi.c#1 $ */
 
 #include "platform.h"
 #include "di_defs.h"

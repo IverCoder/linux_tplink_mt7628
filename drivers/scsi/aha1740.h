@@ -1,6 +1,6 @@
 #ifndef _AHA1740_H
 
-/* $Id$
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aha1740.h#1 $
  *
  * Header file for the adaptec 1740 driver for Linux
  *

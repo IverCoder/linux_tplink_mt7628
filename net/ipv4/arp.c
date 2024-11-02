@@ -119,6 +119,12 @@ struct neigh_table *clip_tbl_hook;
 EXPORT_SYMBOL(clip_tbl_hook);
 #endif
 
+/* add by suweilin */
+#ifdef CONFIG_TP_NEW_SUPER_DMZ
+u16 (*sdmz_arp_update_hook)(struct neighbour *neigh) __read_mostly;
+EXPORT_SYMBOL_GPL(sdmz_arp_update_hook);
+#endif
+/* add end */
 #include <asm/system.h>
 #include <asm/uaccess.h>
 
@@ -201,14 +207,32 @@ struct neigh_table arp_tbl = {
 	.gc_thresh3 =	1024,
 };
 EXPORT_SYMBOL(arp_tbl);
+#ifdef CONFIG_TP_SUPER_DMZ
+#if 0
+#define LQ_DEBUG(fmt, args...) printk("[%s:%d]"fmt"\n", __FUNCTION__,__LINE__,##args)
+#else
+#define LQ_DEBUG(fmt, args...)
+#endif
+struct K_SDMZ_OBJ
+{
+	unsigned char enable;
+	unsigned char mac[6];
+	unsigned long fakeIP;
+	unsigned long hostIP;
+	unsigned long lanIP;
+	unsigned long mask;
+} kSdmzObj;
+EXPORT_SYMBOL(kSdmzObj);
+#endif
+
 
 int arp_mc_map(__be32 addr, u8 *haddr, struct net_device *dev, int dir)
 {
 	switch (dev->type) {
-	case ARPHRD_ETHER:
-	case ARPHRD_FDDI:
-	case ARPHRD_IEEE802:
-		ip_eth_mc_map(addr, haddr);
+		case ARPHRD_ETHER:
+		case ARPHRD_FDDI:
+		case ARPHRD_IEEE802:
+			ip_eth_mc_map(addr, haddr);
 		return 0;
 	case ARPHRD_IEEE802_TR:
 		ip_tr_mc_map(addr, haddr);
@@ -439,6 +463,37 @@ static int arp_filter(__be32 sip, __be32 tip, struct net_device *dev)
 	ip_rt_put(rt);
 	return flag;
 }
+
+/* Check if tip(host order) is local ip of dev. Add by xcl, 2013-09-17 */
+static int arp_not_local_ip(__be32 tip, struct net_device *dev)
+{
+	struct in_device *in_dev;
+
+	if (dev == NULL)
+	{
+		return 1;
+	}
+
+	in_dev = dev->ip_ptr;
+	
+	if (in_dev != NULL)
+	{
+		struct in_ifaddr **ifap = &in_dev->ifa_list;
+
+		while (*ifap != NULL) 
+		{
+			if (tip == (*ifap)->ifa_local) 
+			{
+				return 0;
+			}
+			ifap = &(*ifap)->ifa_next;
+		}
+	}
+
+	return 1;
+}				
+/* End add */
+
 
 /* OBSOLETE FUNCTIONS */
 
@@ -760,6 +815,11 @@ static int arp_process(struct sk_buff *skb)
 	int addr_type;
 	struct neighbour *n;
 	struct net *net = dev_net(dev);
+#ifdef CONFIG_TP_SUPER_DMZ
+    unsigned char smac[6] = "";
+	unsigned long needCheat = 0;
+#endif
+
 
 	/* arp_rcv below verifies the ARP header and verifies the device
 	 * is ARP'able.
@@ -817,23 +877,84 @@ static int arp_process(struct sk_buff *skb)
  */
 	arp_ptr= (unsigned char *)(arp+1);
 	sha	= arp_ptr;
+
+#ifdef CONFIG_TP_SUPER_DMZ
+    memcpy(smac, arp_ptr, dev->addr_len);
+#endif
+
+
 	arp_ptr += dev->addr_len;
 	memcpy(&sip, arp_ptr, 4);
 	arp_ptr += 4;
 	arp_ptr += dev->addr_len;
 	memcpy(&tip, arp_ptr, 4);
-/*
- *	Check for bad requests for 127.x.x.x and requests for multicast
- *	addresses.  If this is one such, delete it.
- */
+
+#ifdef CONFIG_TP_SUPER_DMZ
+	LQ_DEBUG("kSdmzObj.enable  = %d \n", kSdmzObj.enable);
+	if (kSdmzObj.enable)
+	{
+		/*
+		*/
+		LQ_DEBUG("==> sip: %0X\ttip: %0X\n\
+				dmac: %hhX:%hhX:%hhX:%hhX:%hhX:%hhX\n\
+				smac: %hhX:%hhX:%hhX:%hhX:%hhX:%hhX\n\
+				flag: %u\n", 
+				sip, tip, kSdmzObj.mac[0], kSdmzObj.mac[1],
+				kSdmzObj.mac[2],kSdmzObj.mac[3],
+				kSdmzObj.mac[4],kSdmzObj.mac[5],
+				smac[0], smac[1], smac[2], smac[3], smac[4], smac[5],
+				memcmp(smac, kSdmzObj.mac, 6));
+		
+		LQ_DEBUG("htons(kSdmzObj.hostIP): %0x", kSdmzObj.hostIP);
+		LQ_DEBUG("htons(kSdmzObj.lanIP): %0x", kSdmzObj.lanIP);
+		LQ_DEBUG("htons(kSdmzObj.fakeIP): %0x", kSdmzObj.fakeIP);
+
+		if (memcmp(smac, kSdmzObj.mac, 6) == 0 &&
+				kSdmzObj.hostIP == sip && sip == tip)
+		{
+			/*
+			 * gratuitous arp request for the sdmz host, just ignore
+			 */
+			printk("==> gratuitous arp of sdmz host, ignore!\n");
+			goto out;
+		}
+		if (kSdmzObj.hostIP == tip
+				&& (kSdmzObj.lanIP == sip || 0 == sip))
+			goto out;
+		/* arp reply for sdmz host */
+		if (sip == kSdmzObj.hostIP && tip == kSdmzObj.lanIP)
+		{
+			sip = kSdmzObj.fakeIP;
+		}
+		if ((sip == kSdmzObj.hostIP))//&& ((tip & kSdmzObj.mask) == (sip & kSdmzObj.mask))
+		{
+			needCheat = tip;
+			tip = kSdmzObj.lanIP;
+		}
+	}
+#endif
+
+	/*
+	 *	Check for bad requests for 127.x.x.x and requests for multicast
+	 *	addresses.  If this is one such, delete it.
+	 */
 	if (ipv4_is_loopback(tip) || ipv4_is_multicast(tip))
 		goto out;
 
-/*
- *     Special case: We must set Frame Relay source Q.922 address
- */
+	/*
+	 *     Special case: We must set Frame Relay source Q.922 address
+	 */
 	if (dev_type == ARPHRD_DLCI)
 		sha = dev->broadcast;
+
+#ifdef CONFIG_TP_SUPER_DMZ
+	if (needCheat)
+	{
+		arp_send(ARPOP_REPLY,ETH_P_ARP,sip,dev,needCheat,sha,dev->dev_addr,sha);
+		goto out;
+	}
+#endif
+
 
 /*
  *  Process entry.  The idea here is we want to send a reply if it is a
@@ -875,6 +996,8 @@ static int arp_process(struct sk_buff *skb)
 				dont_send |= arp_ignore(in_dev,sip,tip);
 			if (!dont_send && IN_DEV_ARPFILTER(in_dev))
 				dont_send |= arp_filter(sip,tip,dev);
+		    if (!dont_send)
+				dont_send |= arp_not_local_ip(tip, dev);
 			if (!dont_send) {
 				n = neigh_event_ns(&arp_tbl, sha, &sip, dev);
 				if (n) {
@@ -922,9 +1045,42 @@ static int arp_process(struct sk_buff *skb)
 			n = __neigh_lookup(&arp_tbl, &sip, dev, 1);
 	}
 
+		/* add by suweilin */
+#ifdef CONFIG_TP_NEW_SUPER_DMZ
+		// add smart dmz hook
+		if(sdmz_arp_update_hook)
+			sdmz_arp_update_hook(n);
+#endif
+		/* add end */
 	if (n) {
 		int state = NUD_REACHABLE;
 		int override;
+
+		/* If we find arp request source mac has be conflicted with permanent
+		 * entry in arp table, then we need to send garp anyway.
+		 * Add by Jason Guo<guodongxian@tp-link.net>, 20140801
+		 */
+		/*printk("bind mac: %02x-%02x-%02x-%02x-%02x-%02x\n",
+				n->ha[0], n->ha[1], n->ha[2], n->ha[3], n->ha[4], n->ha[5]);*/
+		 struct timeval now;
+		 
+		#define GARP_INTERVAL 1 /* 1 second */
+
+		if ((n->nud_state & NUD_PERMANENT) && memcmp(sha, n->ha, dev->addr_len))
+		{
+			do_gettimeofday(&now);
+			if ((now.tv_sec - n->time_record.tv_sec) > GARP_INTERVAL || !n->time_record.tv_sec)
+			{
+				arp_send(ARPOP_REPLY, ETH_P_ARP, sip, dev, sip, sha, n->ha, sha);
+
+				arp_send(ARPOP_REQUEST, ETH_P_ARP, sip, dev, sip, NULL, n->ha, NULL);
+
+				/* printk("interval: %u\n", (now.tv_sec - n->time_record.tv_sec)); */
+				n->time_record = now;
+			}
+			neigh_release(n);
+			goto out;
+		}
 
 		/* If several different ARP replies follows back-to-back,
 		   use the FIRST one. It is possible, if several proxy
@@ -1195,6 +1351,18 @@ int arp_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 			if (err)
 				return -EFAULT;
 			break;
+#ifdef CONFIG_TP_SUPER_DMZ
+		case SIOCSDMZ:
+			err = copy_from_user(&kSdmzObj, arg, sizeof(struct K_SDMZ_OBJ));
+			if (err)
+				return -EFAULT;
+			/*printk("==>arp_ioctl: %d\n%s\n%s\n%s\n", 
+			  kSdmzObj.enable, 
+			  kSdmzObj.mac,
+			  kSdmzObj.fakeIP,
+			  kSdmzObj.hostIP);*/
+			return err;
+#endif
 		default:
 			return -EINVAL;
 	}

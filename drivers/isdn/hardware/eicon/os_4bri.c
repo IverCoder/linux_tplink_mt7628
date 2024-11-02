@@ -1,4 +1,4 @@
-/* $Id: os_4bri.c,v 1.28.4.4 2005/02/11 19:40:25 armin Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/eicon/os_4bri.c#1 $ */
 
 #include "platform.h"
 #include "debuglib.h"

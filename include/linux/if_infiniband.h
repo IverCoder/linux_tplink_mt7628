@@ -18,7 +18,7 @@
  *
  * Copyright (c) 2004 Topspin Communications.  All rights reserved.
  *
- * $Id$
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/if_infiniband.h#1 $
  */
 
 #ifndef _LINUX_IF_INFINIBAND_H

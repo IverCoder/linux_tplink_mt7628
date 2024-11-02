@@ -1,4 +1,4 @@
-/* $Id: hisax_cfg.h,v 1.1.2.1 2004/01/24 20:47:23 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/hisax_cfg.h#1 $
  * define of the basic HiSax configuration structures
  * and pcmcia interface
  *

@@ -1,6 +1,6 @@
 #
 # AIC7XXX and AIC79XX 2.5.X Kernel configuration File.
-# $Id: //depot/linux-aic79xx-2.5.0/drivers/scsi/aic7xxx/Kconfig.aic7xxx#7 $
+# $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aic7xxx/Kconfig.aic7xxx#1 $
 #
 config SCSI_AIC7XXX
 	tristate "Adaptec AIC7xxx Fast -> U160 support (New Driver)"

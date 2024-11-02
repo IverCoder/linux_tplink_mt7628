@@ -1,4 +1,4 @@
-/* $Id: isdn_audio.c,v 1.1.2.2 2004/01/12 22:37:18 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/i4l/isdn_audio.c#1 $
  *
  * Linux ISDN subsystem, audio conversion and compression (linklevel).
  *
@@ -16,7 +16,7 @@
 #include "isdn_audio.h"
 #include "isdn_common.h"
 
-char *isdn_audio_revision = "$Revision: 1.1.2.2 $";
+char *isdn_audio_revision = "$Revision: #1 $";
 
 /*
  * Misc. lookup-tables.

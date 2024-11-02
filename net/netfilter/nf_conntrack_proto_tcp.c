@@ -32,8 +32,12 @@
 /* "Be conservative in what you do,
     be liberal in what you accept from others."
     If it's non-zero, we mark only out of window RST segments as INVALID. */
+#if defined(CONFIG_SHORTCUT_FE) || defined(CONFIG_SHORTCUT_FE_MODULE)
+int nf_ct_tcp_be_liberal __read_mostly = 0;
+EXPORT_SYMBOL_GPL(nf_ct_tcp_be_liberal);
+#else
 static int nf_ct_tcp_be_liberal __read_mostly = 0;
-
+#endif
 /* If it is set to zero, we disable picking up already established
    connections. */
 static int nf_ct_tcp_loose __read_mostly = 1;
@@ -70,6 +74,8 @@ static const char *const tcp_conntrack_names[] = {
 static unsigned int nf_ct_tcp_timeout_max_retrans __read_mostly    =   5 MINS;
 static unsigned int nf_ct_tcp_timeout_unacknowledged __read_mostly =   5 MINS;
 
+/* changed by yangxv from WR841N, 2008.06.10 */
+#if 0
 static unsigned int tcp_timeouts[TCP_CONNTRACK_MAX] __read_mostly = {
 	[TCP_CONNTRACK_SYN_SENT]	= 2 MINS,
 	[TCP_CONNTRACK_SYN_RECV]	= 60 SECS,
@@ -79,6 +85,18 @@ static unsigned int tcp_timeouts[TCP_CONNTRACK_MAX] __read_mostly = {
 	[TCP_CONNTRACK_LAST_ACK]	= 30 SECS,
 	[TCP_CONNTRACK_TIME_WAIT]	= 2 MINS,
 	[TCP_CONNTRACK_CLOSE]		= 10 SECS,
+	[TCP_CONNTRACK_SYN_SENT2]	= 2 MINS,
+};
+#endif
+static unsigned int tcp_timeouts[TCP_CONNTRACK_MAX] __read_mostly = {
+	[TCP_CONNTRACK_SYN_SENT]	= 30 SECS,
+	[TCP_CONNTRACK_SYN_RECV]	= 30 SECS,
+	[TCP_CONNTRACK_ESTABLISHED]	= 30 MINS,
+	[TCP_CONNTRACK_FIN_WAIT]	= 30 SECS,
+	[TCP_CONNTRACK_CLOSE_WAIT]	= 30 SECS,
+	[TCP_CONNTRACK_LAST_ACK]	= 30 SECS,
+	[TCP_CONNTRACK_TIME_WAIT]	= 30 SECS,
+	[TCP_CONNTRACK_CLOSE]		= 1 SECS,
 	[TCP_CONNTRACK_SYN_SENT2]	= 2 MINS,
 };
 
@@ -657,9 +675,10 @@ static bool tcp_in_window(const struct nf_conn *ct,
 		 before(sack, receiver->td_end + 1),
 		 after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1));
 
+#if defined (CONFIG_RA_NAT_NONE)
 	if (before(seq, sender->td_maxend + 1) &&
 	    after(end, sender->td_end - receiver->td_maxwin - 1) &&
-	    before(sack, receiver->td_end + 1) &&
+	    ( before(sack, receiver->td_end + 1) || (sack == receiver->td_end - receiver_offset) ) &&
 	    after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1)) {
 		/*
 		 * Take into account window scaling (RFC 1323).
@@ -736,6 +755,10 @@ static bool tcp_in_window(const struct nf_conn *ct,
 			: "SEQ is over the upper bound (over the window of the receiver)");
 	}
 
+#else
+	res = 1;
+#endif
+
 	pr_debug("tcp_in_window: res=%u sender end=%u maxend=%u maxwin=%u "
 		 "receiver end=%u maxend=%u maxwin=%u\n",
 		 res, sender->td_end, sender->td_maxend, sender->td_maxwin,
@@ -743,6 +766,48 @@ static bool tcp_in_window(const struct nf_conn *ct,
 
 	return res;
 }
+
+#ifdef CONFIG_NF_NAT_NEEDED
+/* Update sender->td_end after NAT successfully mangled the packet */
+/* Caller must linearize skb at tcp header. */
+void nf_conntrack_tcp_update(const struct sk_buff *skb,
+			     unsigned int dataoff,
+			     struct nf_conn *ct, int dir,
+			     s16 offset)
+{
+	const struct tcphdr *tcph = (const void *)skb->data + dataoff;
+	const struct ip_ct_tcp_state *sender = &ct->proto.tcp.seen[dir];
+	const struct ip_ct_tcp_state *receiver = &ct->proto.tcp.seen[!dir];
+	__u32 end;
+
+	end = segment_seq_plus_len(ntohl(tcph->seq), skb->len, dataoff, tcph);
+
+	spin_lock_bh(&ct->lock);
+	/*
+	 * We have to worry for the ack in the reply packet only...
+	 */
+	if (ct->proto.tcp.seen[dir].td_end + offset == end)
+		ct->proto.tcp.seen[dir].td_end = end;
+	ct->proto.tcp.last_end = end;
+	spin_unlock_bh(&ct->lock);
+	pr_debug("tcp_update: sender end=%u maxend=%u maxwin=%u scale=%i "
+		 "receiver end=%u maxend=%u maxwin=%u scale=%i\n",
+		 sender->td_end, sender->td_maxend, sender->td_maxwin,
+		 sender->td_scale,
+		 receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
+		 receiver->td_scale);
+}
+EXPORT_SYMBOL_GPL(nf_conntrack_tcp_update);
+#endif
+
+#define	TH_FIN	0x01
+#define	TH_SYN	0x02
+#define	TH_RST	0x04
+#define	TH_PUSH	0x08
+#define	TH_ACK	0x10
+#define	TH_URG	0x20
+#define	TH_ECE	0x40
+#define	TH_CWR	0x80
 
 /* table of valid flag combinations - PUSH, ECE and CWR are always valid */
 static const u8 tcp_valid_flags[(TCPHDR_FIN|TCPHDR_SYN|TCPHDR_RST|TCPHDR_ACK|

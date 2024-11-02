@@ -8,7 +8,7 @@
  *     last modfied: Tue Mar 30 22:26:21 2004
  *
  *   by /n/asic/design/tools/rdesc/src/rdes2c --outfile extmem_defs.h ../../inst/ext_mem/mod/extmem_regs.r
- *      id: $Id: extmem_defs.h,v 1.5 2004/06/04 07:15:33 starvik Exp $
+ *      id: $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/include/arch-v32/arch/hwregs/extmem_defs.h#1 $
  * Any changes here will be lost.
  *
  * -*- buffer-read-only: t -*-

@@ -50,6 +50,29 @@ source "net/unix/Kconfig"
 source "net/xfrm/Kconfig"
 source "net/iucv/Kconfig"
 
+config TP_SUPER_DMZ
+	bool "KOREA SPECIAL SUPER DMZ"
+	default n
+	---help---
+		the macro for SUPER DMZ function of korea specification
+		
+		If unsure, say N.
+
+config TP_NEW_SUPER_DMZ
+	bool "NEW SUPER DMZ"
+	default n
+	---help---
+		the macro for NEW SUPER DMZ function 
+		
+		If unsure, say N.
+
+config MULTICAST_PKT_FIRST
+    bool "Process multicast packet first. NOT RPS safe"
+	default n
+    ---help---
+      Give multicast packets higher priority than unicast packets when
+      passing packets up.
+
 config INET
 	bool "TCP/IP networking"
 	---help---
@@ -173,7 +196,7 @@ config BRIDGE_NETFILTER
 	bool "Bridged IP/ARP packets filtering"
 	depends on BRIDGE && NETFILTER && INET
 	depends on NETFILTER_ADVANCED
-	default y
+	default n
 	---help---
 	  Enabling this option will let arptables resp. iptables see bridged
 	  ARP resp. IP traffic. If you want a bridging firewall, you probably
@@ -214,6 +237,7 @@ source "net/ieee802154/Kconfig"
 source "net/sched/Kconfig"
 source "net/dcb/Kconfig"
 source "net/dns_resolver/Kconfig"
+source "net/shortcut-fe/Kconfig"
 
 config RPS
 	boolean

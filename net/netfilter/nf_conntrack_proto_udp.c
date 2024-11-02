@@ -25,8 +25,12 @@
 #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
 #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
 
+
+/* changed by yangxv from WR841N, 2008.06.10 */
+//static unsigned int nf_ct_udp_timeout __read_mostly = 30*HZ;
+//static unsigned int nf_ct_udp_timeout_stream __read_mostly = 180*HZ;
 static unsigned int nf_ct_udp_timeout __read_mostly = 30*HZ;
-static unsigned int nf_ct_udp_timeout_stream __read_mostly = 180*HZ;
+static unsigned int nf_ct_udp_timeout_stream __read_mostly = 120*HZ;
 
 static bool udp_pkt_to_tuple(const struct sk_buff *skb,
 			     unsigned int dataoff,
@@ -71,6 +75,19 @@ static int udp_packet(struct nf_conn *ct,
 		      u_int8_t pf,
 		      unsigned int hooknum)
 {
+	/* If this is a dns connection, shorten timeout
+	 * added by yangxv from WR841N, 2008.06.10
+	 */
+	//const struct iphdr *iph = ip_hdr(skb);
+	//struct udphdr *udph = (void *)iph + iph->ihl*4;	
+	
+	struct udphdr *udph = udp_hdr(skb);
+	
+	if (udph->source == 53 || udph->dest == 53)
+		nf_ct_refresh_acct(ct, ctinfo, skb, 20 * HZ);
+	else
+	/* end added */
+
 	/* If we've seen traffic both ways, this is some kind of UDP
 	   stream.  Extend timeout. */
 	if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {

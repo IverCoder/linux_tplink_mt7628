@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *      $Id: sequencer.h,v 1.3 1997/09/27 19:37:31 gibbs Exp $
+ *      $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aic7xxx_old/sequencer.h#1 $
  */
 
 #ifdef __LITTLE_ENDIAN_BITFIELD

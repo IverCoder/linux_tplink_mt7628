@@ -22,6 +22,22 @@
 #ifndef	__LINUX_USB_USBNET_H
 #define	__LINUX_USB_USBNET_H
 
+/*added by LY to transport qmi_wwan.ko form soho, in 2014.08.27*/
+#if 0
+#define netdev_dbg(__dev, format, args...)
+#endif
+#if 1
+#define netdev_info(dev, format, ...)
+#endif
+#if 0
+#define netif_dbg(priv, type, dev, format, args...)
+#endif
+#if 1
+#define netdev_err(dev, format, ...)
+#endif
+
+/*end added by LY*/
+
 /* interface from usbnet core to each USB networking link we handle */
 struct usbnet {
 	/* housekeeping */
@@ -65,9 +81,12 @@ struct usbnet {
 #		define EVENT_RX_MEMORY	2
 #		define EVENT_STS_SPLIT	3
 #		define EVENT_LINK_RESET	4
+/* added by hejian, 120502 */
 #		define EVENT_RX_PAUSED	5
 #		define EVENT_DEV_WAKING 6
 #		define EVENT_DEV_ASLEEP 7
+#		define EVENT_DEV_OPEN	8
+/* end adding */
 };
 
 static inline struct usb_driver *driver_of(struct usb_interface *intf)
@@ -96,6 +115,17 @@ struct driver_info {
 #define FLAG_WWAN	0x0400		/* use "wwan%d" names */
 
 #define FLAG_LINK_INTR	0x0800		/* updates link (carrier) status */
+
+#define FLAG_POINTTOPOINT 0x1000	/* possibly use "usb%d" names */
+
+/*
+ * Indicates to usbnet, that USB driver accumulates multiple IP packets.
+ * Affects statistic (counters) and short packet handling.
+ */
+#define FLAG_MULTI_PACKET	0x2000
+#define FLAG_RX_ASSEMBLE	0x4000	/* rx packets may span >1 frames */
+
+/* end adding */
 
 	/* init device ... can sleep, or cause probe() failure */
 	int	(*bind)(struct usbnet *, struct usb_interface *);
@@ -166,7 +196,9 @@ struct cdc_state {
 };
 
 extern int usbnet_generic_cdc_bind(struct usbnet *, struct usb_interface *);
+extern int usbnet_cdc_bind(struct usbnet *, struct usb_interface *);	/*added by LY for qmi_wwan.ko, in 2014.08.29*/
 extern void usbnet_cdc_unbind(struct usbnet *, struct usb_interface *);
+extern void usbnet_cdc_status(struct usbnet *, struct urb *);	/*added by LY for qmi_wwan.ko, in 2014.08.29*/
 
 /* CDC and RNDIS support the same host-chosen packet filters for IN transfers */
 #define	DEFAULT_FILTER	(USB_CDC_PACKET_TYPE_BROADCAST \
@@ -215,5 +247,26 @@ extern u32 usbnet_get_msglevel(struct net_device *);
 extern void usbnet_set_msglevel(struct net_device *, u32);
 extern void usbnet_get_drvinfo(struct net_device *, struct ethtool_drvinfo *);
 extern int usbnet_nway_reset(struct net_device *net);
+
+/* messaging support includes the interface name, so it must not be
+ * used before it has one ... notably, in minidriver bind() calls.
+ */
+#ifdef DEBUG
+#define devdbg(usbnet, fmt, arg...) \
+	printk(KERN_DEBUG "%s: " fmt "\n" , (usbnet)->net->name , ## arg)
+#else
+#define devdbg(usbnet, fmt, arg...) \
+	({ if (0) printk(KERN_DEBUG "%s: " fmt "\n" , (usbnet)->net->name , \
+		## arg); 0; })
+#endif
+
+#define deverr(usbnet, fmt, arg...) \
+	printk(KERN_ERR "%s: " fmt "\n" , (usbnet)->net->name , ## arg)
+#define devwarn(usbnet, fmt, arg...) \
+	printk(KERN_WARNING "%s: " fmt "\n" , (usbnet)->net->name , ## arg)
+
+#define devinfo(usbnet, fmt, arg...) \
+	printk(KERN_INFO "%s: " fmt "\n" , (usbnet)->net->name , ## arg); \
+
 
 #endif /* __LINUX_USB_USBNET_H */

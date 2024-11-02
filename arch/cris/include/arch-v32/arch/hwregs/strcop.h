@@ -1,4 +1,4 @@
-// $Id: strcop.h,v 1.3 2003/10/22 13:27:12 henriken Exp $
+// $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/include/arch-v32/arch/hwregs/strcop.h#1 $
 
 // Streamcop meta-data configuration structs
 

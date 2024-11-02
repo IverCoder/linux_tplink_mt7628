@@ -1,4 +1,4 @@
-/* $Id: platform.h,v 1.37.4.6 2005/01/31 12:22:20 armin Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/eicon/platform.h#1 $
  *
  * platform.h
  * 

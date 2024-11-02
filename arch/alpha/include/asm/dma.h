@@ -8,7 +8,7 @@
  * as this will also enable DMA across 64 KB boundaries.
  */
 
-/* $Id: dma.h,v 1.7 1992/12/14 00:29:34 root Exp root $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/alpha/include/asm/dma.h#1 $
  * linux/include/asm/dma.h: Defines for using and allocating dma channels.
  * Written by Hennus Bergman, 1992.
  * High DMA channel support & info by Hannu Savolainen

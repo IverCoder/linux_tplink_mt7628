@@ -8,7 +8,7 @@
  *     last modfied: Mon Jan  9 06:06:41 2006
  *
  *   by /n/asic/design/tools/rdesc/rdes2c eth.r
- *      id: $Id: eth_defs.h,v 1.7 2006/01/26 13:45:30 karljope Exp $
+ *      id: $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/include/arch-v32/arch/hwregs/eth_defs.h#1 $
  * Any changes here will be lost.
  *
  * -*- buffer-read-only: t -*-

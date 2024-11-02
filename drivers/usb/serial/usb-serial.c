@@ -60,6 +60,10 @@ static struct usb_driver usb_serial_driver = {
    via modprobe, and modprobe will load usbserial because the serial
    drivers depend on it.
 */
+/* Added by zjj, 20130530, transplanted from 8970V1, kernel 2.6.32. start-->*/
+static ushort maxRSize = 2048, maxWSize = 2048, maxISize = 2048;
+static ushort maxSize = 0;
+/* <--Ended by zjj. */
 
 static int debug;
 /* initially all NULL */
@@ -449,6 +453,8 @@ static int serial_break(struct tty_struct *tty, int break_state)
 	return 0;
 }
 
+/* Added by zjj, 20130530, transplanted from 8970V1, kernel 2.6.32. start-->*/
+#if 0
 static int serial_proc_show(struct seq_file *m, void *v)
 {
 	struct usb_serial *serial;
@@ -482,6 +488,40 @@ static int serial_proc_show(struct seq_file *m, void *v)
 	}
 	return 0;
 }
+#else
+static int serial_proc_show(struct seq_file *m, void *v)
+{
+	struct usb_serial *serial;
+	struct usb_serial_port *port;
+	int i;
+	int j;
+	int ifIndex = -1;
+
+	dbg("%s", __func__);
+	for (i = 0; i < SERIAL_TTY_MINORS; ++i) {
+		serial = usb_serial_get_by_index(i);
+		if (serial == NULL)
+			continue;
+		for (j=0; j < serial->num_ports; j++)
+		{
+			port = serial->port[j];
+			seq_printf (m, "ttyIndex:%d", port->number);
+			seq_printf (m, " vendor:%04x product:%04x", 
+				   le16_to_cpu(serial->dev->descriptor.idVendor), 
+				   le16_to_cpu(serial->dev->descriptor.idProduct));
+		
+			ifIndex = serial->interface->cur_altsetting->desc.bInterfaceNumber;
+			seq_printf (m, " ifIndex:%d", ifIndex);
+
+			seq_putc (m, '\n');
+		}
+		usb_serial_put(serial);
+		mutex_unlock(&serial->disc_mutex);
+	}
+	return 0;
+}
+#endif
+/* <--Ended by zjj. */
 
 static int serial_proc_open(struct inode *inode, struct file *file)
 {
@@ -902,6 +942,13 @@ int usb_serial_probe(struct usb_interface *interface,
 		buffer_size = serial->type->bulk_in_size;
 		if (!buffer_size)
 			buffer_size = le16_to_cpu(endpoint->wMaxPacketSize);
+
+		/* Added by zjj, 20130530, transplanted from 8970V1, kernel 2.6.32. start-->*/
+		if (buffer_size < maxSize)
+			buffer_size = maxSize;
+		if (buffer_size < maxRSize) 
+			buffer_size = maxRSize;
+		/* <--Ended by zjj. */
 		port->bulk_in_size = buffer_size;
 		port->bulk_in_endpointAddress = endpoint->bEndpointAddress;
 		port->bulk_in_buffer = kmalloc(buffer_size, GFP_KERNEL);
@@ -932,6 +979,10 @@ int usb_serial_probe(struct usb_interface *interface,
 		buffer_size = serial->type->bulk_out_size;
 		if (!buffer_size)
 			buffer_size = le16_to_cpu(endpoint->wMaxPacketSize);
+		/* Added by zjj, 20130530, transplanted from 8970V1, kernel 2.6.32. start-->*/
+		if (buffer_size < maxWSize)
+			buffer_size = maxWSize;
+		/* <--Ended by zjj. */
 		port->bulk_out_size = buffer_size;
 		port->bulk_out_endpointAddress = endpoint->bEndpointAddress;
 		port->bulk_out_buffer = kmalloc(buffer_size, GFP_KERNEL);
@@ -980,6 +1031,10 @@ int usb_serial_probe(struct usb_interface *interface,
 				goto probe_error;
 			}
 			buffer_size = le16_to_cpu(endpoint->wMaxPacketSize);
+			/* Added by zjj, 20130530, transplanted from 8970V1, kernel 2.6.32. start-->*/
+			if (buffer_size < maxISize) 
+				buffer_size = maxISize; 
+			/* <--Ended by zjj. */
 			port->interrupt_in_endpointAddress =
 						endpoint->bEndpointAddress;
 			port->interrupt_in_buffer = kmalloc(buffer_size,
@@ -1373,3 +1428,7 @@ MODULE_LICENSE("GPL");
 
 module_param(debug, bool, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(debug, "Debug enabled or not");
+/* Added by zjj, 20130530, transplanted from 8970V1, kernel 2.6.32. start-->*/
+module_param(maxSize, ushort,0);
+MODULE_PARM_DESC(maxSize,"User specified USB endpoint size");
+/* <--Ended by zjj. */

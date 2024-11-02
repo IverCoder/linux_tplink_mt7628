@@ -110,6 +110,43 @@
 #define WM8960_OPCLK_DIV_5_5		(4 << 0)
 #define WM8960_OPCLK_DIV_6		(5 << 0)
 
+#ifdef CONFIG_SND_RALINK_SOC
+#define ADDITIONAL1_DATSEL(x)         	(((x) & 0x3) << 2)
+#define PWRMGMT3_LMIC			(1<<5)
+#define PWRMGMT3_RMIC                   (1<<4)
+
+#define PWRMGMT2_DACL               	(1 << 8)
+#define PWRMGMT2_DACR                   (1 << 7)
+#define PWRMGMT2_LOUT1                  (1 << 6)
+#define PWRMGMT2_ROUT1                  (1 << 5)
+#define PWRMGMT2_SPKL                   (1 << 4)
+#define PWRMGMT2_SPKR                   (1 << 3)
+#define PWRMGMT2_OUT3                   (1 << 1)
+#define PWRMGMT2_PLL_EN                 (1 << 0)
+#define PWRMGMT3_LOMIX                  (1<<3)
+#define PWRMGMT3_ROMIX                  (1<<2)
+#define PWRMGMT1_VMIDSEL_DISABLED   	(0 << 7)
+#define PWRMGMT1_VMIDSEL_50K        	(1 << 7)
+#define PWRMGMT1_VMIDSEL_250K       	(2 << 7)
+#define PWRMGMT1_VMIDSEL_5K         	(3 << 7)
+#define PWRMGMT1_VREF                   (1 << 6)
+#define PWRMGMT1_AINL                   (1 << 5)
+#define PWRMGMT1_AINR                   (1 << 4)
+#define PWRMGMT1_ADCL                   (1 << 3)
+#define PWRMGMT1_ADCR                   (1 << 2)
+#define PWRMGMT1_MICB                   (1 << 1)
+#define PWRMGMT1_DIGENB                 (1 << 0)
+#define AINTFCE1_WL_16               	(0 << 2)
+#define AINTFCE1_FORMAT_I2S             (2 << 0)
+#define CLOCKING1_SYSCLKDIV_2		(2 << 1)
+#define CLOCKING1_CLKSEL_PLL		(1 << 0)
+#define LEFTGAIN_LDVU                   (1 << 8)
+#define LEFTGAIN_LDACVOL(x)         	((x) & 0xff)
+#define RIGHTGAIN_RDVU                  (1 << 8)
+#define RIGHTGAIN_RDACVOL(x)        	((x) & 0xff)
+
+
+#endif
 extern struct snd_soc_dai wm8960_dai;
 extern struct snd_soc_codec_device soc_codec_dev_wm8960;
 

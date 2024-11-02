@@ -901,7 +901,7 @@ struct net_device {
 
 	unsigned int		flags;	/* interface flags (a la BSD)	*/
 	unsigned short		gflags;
-        unsigned short          priv_flags; /* Like 'flags' but invisible to userspace. */
+        unsigned int          priv_flags; /* Like 'flags' but invisible to userspace. */
 	unsigned short		padded;	/* How much padding added by alloc_netdev() */
 
 	unsigned char		operstate; /* RFC2863 operstate */
@@ -1295,6 +1295,7 @@ extern int		dev_alloc_name(struct net_device *dev, const char *name);
 extern int		dev_open(struct net_device *dev);
 extern int		dev_close(struct net_device *dev);
 extern void		dev_disable_lro(struct net_device *dev);
+extern struct netdev_queue *dev_pick_tx(struct net_device *dev, struct sk_buff *skb);
 extern int		dev_queue_xmit(struct sk_buff *skb);
 extern int		register_netdevice(struct net_device *dev);
 extern void		unregister_netdevice_queue(struct net_device *dev,
@@ -1425,6 +1426,9 @@ struct softnet_data {
 #endif
 	unsigned		dropped;
 	struct sk_buff_head	input_pkt_queue;
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+	struct sk_buff_head	input_mpkt_queue;
+#endif
 	struct napi_struct	backlog;
 };
 
@@ -2146,6 +2150,9 @@ extern void		dev_txq_stats_fold(const struct net_device *dev,
 					   struct rtnl_link_stats64 *stats);
 
 extern int		netdev_max_backlog;
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+extern int		netdev_max_mbacklog;
+#endif
 extern int		netdev_tstamp_prequeue;
 extern int		weight_p;
 extern int		netdev_set_master(struct net_device *dev, struct net_device *master);

@@ -1,4 +1,4 @@
-/* $Id: aha1542.c,v 1.1 1992/07/24 06:27:38 root Exp root $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aha1542.c#1 $
  *  linux/kernel/aha1542.c
  *
  *  Copyright (C) 1992  Tommy Thorn
@@ -61,7 +61,7 @@
 #endif
 
 /*
-   static const char RCSid[] = "$Header: /usr/src/linux/kernel/blk_drv/scsi/RCS/aha1542.c,v 1.1 1992/07/24 06:27:38 root Exp root $";
+   static const char RCSid[] = "$Header: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aha1542.c#1 $";
  */
 
 /* The adaptec can be configured for quite a number of addresses, but

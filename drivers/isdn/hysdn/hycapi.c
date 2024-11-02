@@ -1,4 +1,4 @@
-/* $Id: hycapi.c,v 1.8.6.4 2001/09/23 22:24:54 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hysdn/hycapi.c#1 $
  *
  * Linux driver for HYSDN cards, CAPI2.0-Interface.
  *
@@ -31,7 +31,7 @@
 #include "hysdn_defs.h"
 #include <linux/kernelcapi.h>
 
-static char hycapi_revision[]="$Revision: 1.8.6.4 $";
+static char hycapi_revision[]="$Revision: #1 $";
 
 unsigned int hycapi_enable = 0xffffffff; 
 module_param(hycapi_enable, uint, 0);

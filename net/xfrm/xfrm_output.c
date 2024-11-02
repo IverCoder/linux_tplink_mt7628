@@ -18,10 +18,17 @@
 #include <linux/spinlock.h>
 #include <net/dst.h>
 #include <net/xfrm.h>
+#if  defined(CONFIG_RA_HW_NAT) || defined(CONFIG_RA_HW_NAT_MODULE)
+#include "../nat/hw_nat/ra_nat.h"
+#endif
 
 static int xfrm_output2(struct sk_buff *skb);
 
+#if defined (CONFIG_RALINK_HWCRYPTO) || defined (CONFIG_RALINK_HWCRYPTO_MODULE)
+int xfrm_state_check_space(struct xfrm_state *x, struct sk_buff *skb)
+#else
 static int xfrm_state_check_space(struct xfrm_state *x, struct sk_buff *skb)
+#endif
 {
 	struct dst_entry *dst = skb_dst(skb);
 	int nhead = dst->header_len + LL_RESERVED_SPACE(dst->dev)
@@ -84,16 +91,27 @@ static int xfrm_output_one(struct sk_buff *skb, int err)
 		x->curlft.packets++;
 
 		spin_unlock_bh(&x->lock);
-
+#if  defined(CONFIG_RA_HW_NAT) || defined(CONFIG_RA_HW_NAT_MODULE)
+		if( IS_SPACE_AVAILABLED(skb)  &&
+			((FOE_MAGIC_TAG(skb) == FOE_MAGIC_PCI) ||
+			(FOE_MAGIC_TAG(skb) == FOE_MAGIC_WLAN) ||
+			(FOE_MAGIC_TAG(skb) == FOE_MAGIC_GE))){
+			FOE_ALG(skb)=1;
+		}
+#endif
 		err = x->type->output(x, skb);
+#if defined (CONFIG_RALINK_HWCRYPTO) || defined (CONFIG_RALINK_HWCRYPTO_MODULE)
+		if (err == 1)
+			return err;
+#endif	
 		if (err == -EINPROGRESS)
 			goto out_exit;
 
 resume:
-		if (err) {
-			XFRM_INC_STATS(net, LINUX_MIB_XFRMOUTSTATEPROTOERROR);
-			goto error_nolock;
-		}
+			if (err) {
+				XFRM_INC_STATS(net, LINUX_MIB_XFRMOUTSTATEPROTOERROR);
+				goto error_nolock;
+			}
 
 		dst = skb_dst_pop(skb);
 		if (!dst) {
@@ -103,6 +121,7 @@ resume:
 		}
 		skb_dst_set(skb, dst_clone(dst));
 		x = dst->xfrm;
+
 	} while (x && !(x->outer_mode->flags & XFRM_MODE_FLAG_TUNNEL));
 
 	err = 0;
@@ -135,6 +154,10 @@ int xfrm_output_resume(struct sk_buff *skb, int err)
 			goto out;
 	}
 
+#if defined (CONFIG_RALINK_HWCRYPTO) || defined (CONFIG_RALINK_HWCRYPTO_MODULE)
+	if (err == 1)
+		return 0;
+#endif	
 	if (err == -EINPROGRESS)
 		err = 0;
 

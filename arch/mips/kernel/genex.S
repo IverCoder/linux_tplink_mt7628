@@ -22,6 +22,7 @@
 #include <asm/page.h>
 #include <asm/thread_info.h>
 
+#ifdef CONFIG_FULL_PANIC
 #define PANIC_PIC(msg)					\
 		.set push;				\
 		.set	reorder;			\
@@ -32,6 +33,18 @@
 9:		b	9b;				\
 		.set	pop;				\
 		TEXT(msg)
+#else
+#define PANIC_PIC(msg)					\
+		.set push;				\
+		.set	reorder;			\
+		PTR_LA	a0,8f;				\
+		.set	noat;				\
+		PTR_LA	AT, tiny_panic;			\
+		jr	AT;				\
+9:		b	9b;				\
+		.set	pop;				\
+		TEXT(msg)
+#endif
 
 	__INIT
 

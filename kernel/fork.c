@@ -75,6 +75,12 @@
 
 #include <trace/events/sched.h>
 
+/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+#include <linux/sched_optimize.h>
+#endif
+/* add end  */
+
 /*
  * Protected counters by write_lock_irq(&tasklist_lock)
  */
@@ -173,8 +179,10 @@ static inline void free_signal_struct(struct signal_struct *sig)
 
 static inline void put_signal_struct(struct signal_struct *sig)
 {
-	if (atomic_dec_and_test(&sig->sigcnt))
+	if (atomic_dec_and_test(&sig->sigcnt)) {
+		sched_autogroup_exit(sig);
 		free_signal_struct(sig);
+	}
 }
 
 void __put_task_struct(struct task_struct *tsk)
@@ -900,6 +908,7 @@ static int copy_signal(unsigned long clone_flags, struct task_struct *tsk)
 	posix_cpu_timers_init_group(sig);
 
 	tty_audit_fork(sig);
+	sched_autogroup_fork(sig);
 
 	sig->oom_adj = current->signal->oom_adj;
 	sig->oom_score_adj = current->signal->oom_score_adj;
@@ -1458,6 +1467,11 @@ long do_fork(unsigned long clone_flags,
 			set_tsk_thread_flag(p, TIF_SIGPENDING);
 			__set_task_state(p, TASK_STOPPED);
 		} else {
+			/* add by wanghao  */
+		#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+			filterWaitTask(p);
+		#endif
+			/* add end  */
 			wake_up_new_task(p, clone_flags);
 		}
 

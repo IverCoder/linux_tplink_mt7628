@@ -17,6 +17,9 @@
 #include <linux/etherdevice.h>
 #include <linux/netfilter_bridge.h>
 #include "br_private.h"
+#ifdef CONFIG_BRIDGE_VLAN
+#include "br_vlan.h"
+#endif
 
 /* Bridge group multicast address 802.1d (pg 51). */
 const u8 br_group_address[ETH_ALEN] = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x00 };
@@ -56,8 +59,8 @@ int br_handle_frame_finish(struct sk_buff *skb)
 	br = p->br;
 	br_fdb_update(br, p, eth_hdr(skb)->h_source);
 
-	if (is_multicast_ether_addr(dest) &&
-	    br_multicast_rcv(br, p, skb))
+	if ( !is_broadcast_ether_addr(dest) && is_multicast_ether_addr(dest) &&
+	    br_multicast_rcv(br, p, skb) )
 		goto drop;
 
 	if (p->state == BR_STATE_LEARNING)

@@ -1,5 +1,5 @@
 /*
- * $Id: comet_tables.c,v 1.2 2005/10/17 23:55:27 rickd PMCC4_3_1B $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/staging/cxt1e1/comet_tables.c#1 $
  */
 
 /*-----------------------------------------------------------------------------
@@ -21,9 +21,9 @@
  * SBE, Inc.  San Ramon, California  U.S.A.
  *-----------------------------------------------------------------------------
  * RCS info:
- * RCS revision: $Revision: 1.2 $
- * Last changed on $Date: 2005/10/17 23:55:27 $
- * Changed by $Author: rickd $
+ * RCS revision: $Revision: #1 $
+ * Last changed on $Date: 2014/05/07 $
+ * Changed by $Author: red.hung $
  *-----------------------------------------------------------------------------
  * $Log: comet_tables.c,v $
  * Revision 1.2  2005/10/17 23:55:27  rickd
@@ -39,7 +39,7 @@
  */
 
 char SBEid_pmcc4_comet_tblc[] =
-  "@(#)comet_tables.c - $Revision: 1.2 $      (c) Copyright 2004-2005 SBE, Inc.";
+  "@(#)comet_tables.c - $Revision: #1 $      (c) Copyright 2004-2005 SBE, Inc.";
 
 
 #include <linux/types.h>

@@ -1737,8 +1737,13 @@ static int snd_pcm_hw_rule_sample_bits(struct snd_pcm_hw_params *params,
 #error "Change this table"
 #endif
 
+#ifdef CONFIG_SND_RALINK_SOC
+static unsigned int rates[] = { 5512, 8000, 11025, 16000, 22050, 32000, 44100,
+                                 48000, 64000, 88200, 96000, 176400, 192000,12000,24000 };
+#else
 static unsigned int rates[] = { 5512, 8000, 11025, 16000, 22050, 32000, 44100,
                                  48000, 64000, 88200, 96000, 176400, 192000 };
+#endif
 
 const struct snd_pcm_hw_constraint_list snd_pcm_known_rates = {
 	.count = ARRAY_SIZE(rates),
@@ -2499,6 +2504,15 @@ static int snd_pcm_common_ioctl1(struct file *file,
 				 struct snd_pcm_substream *substream,
 				 unsigned int cmd, void __user *arg)
 {
+
+	//printk("%s:%d cmd:%s \n",__func__,__LINE__,(cmd==SNDRV_PCM_IOCTL_HW_REFINE)?"refine":\
+			(cmd==SNDRV_PCM_IOCTL_HW_FREE)?"free":\
+					(cmd==SNDRV_PCM_IOCTL_RESET)?"reset":\
+							(cmd==SNDRV_PCM_IOCTL_UNLINK)?"unlink":\
+									(cmd==SNDRV_PCM_IOCTL_XRUN)?"XRUN":\
+											(cmd==SNDRV_PCM_IOCTL_HWSYNC)?"HWSYNC":\
+													(cmd==SNDRV_PCM_IOCTL_DROP)?"drop":\
+															(cmd==SNDRV_PCM_IOCTL_PAUSE)?"pause":"others");
 	switch (cmd) {
 	case SNDRV_PCM_IOCTL_PVERSION:
 		return put_user(SNDRV_PCM_VERSION, (int __user *)arg) ? -EFAULT : 0;

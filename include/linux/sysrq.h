@@ -1,6 +1,6 @@
 /* -*- linux-c -*-
  *
- *	$Id: sysrq.h,v 1.3 1997/07/17 11:54:33 mj Exp $
+ *	$Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/sysrq.h#1 $
  *
  *	Linux Magic System Request Key Hacks
  *

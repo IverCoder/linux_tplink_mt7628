@@ -54,6 +54,16 @@
 
 #define DRV_EXTRAVERSION "-k2"
 
+#if defined(CONFIG_RA_HW_NAT_NIC_USB)
+/* bruce+
+ *  */
+extern int (*ra_sw_nat_hook_rx)(struct sk_buff *skb);
+extern int (*ra_sw_nat_hook_tx)(struct sk_buff *skb);
+#endif
+
+
+
+
 #define DRV_VERSION "1.2.7" DRV_EXTRAVERSION
 char e1000e_driver_name[] = "e1000e";
 const char e1000e_driver_version[] = DRV_VERSION;
@@ -456,11 +466,50 @@ static void e1000_receive_skb(struct e1000_adapter *adapter,
 {
 	skb->protocol = eth_type_trans(skb, netdev);
 
-	if (adapter->vlgrp && (status & E1000_RXD_STAT_VP))
-		vlan_gro_receive(&adapter->napi, adapter->vlgrp,
-				 le16_to_cpu(vlan), skb);
-	else
-		napi_gro_receive(&adapter->napi, skb);
+#if defined (CONFIG_RA_HW_NAT_NIC_USB)
+#include "../../../net/nat/hw_nat/ra_nat.h"
+		FOE_MAGIC_TAG(skb)= FOE_MAGIC_PCI;
+
+		/* bruce+
+		 * ra_sw_nat_hook_rx return 1 --> continue
+		 * ra_sw_nat_hook_rx return 0 --> FWD & without netif_rx
+		 */
+		if(ra_sw_nat_hook_rx!= NULL)
+		{
+		    //spin_lock_irqsave(&adapter->sw_r_lock, flags);
+		    if(ra_sw_nat_hook_rx(skb)) {
+			if (adapter->vlgrp && (status & E1000_RXD_STAT_VP))
+			    vlan_gro_receive(&adapter->napi, adapter->vlgrp,
+				    le16_to_cpu(vlan), skb);
+			else
+			    napi_gro_receive(&adapter->napi, skb);
+		    }
+		    //spin_unlock_irqrestore(&adapter->sw_r_lock, flags);
+		}else{
+		    if (adapter->vlgrp && (status & E1000_RXD_STAT_VP))
+			vlan_gro_receive(&adapter->napi, adapter->vlgrp,
+				le16_to_cpu(vlan), skb);
+		    else
+			napi_gro_receive(&adapter->napi, skb);
+
+		}
+#else
+		if (adapter->vlgrp && (status & E1000_RXD_STAT_VP))
+		    vlan_gro_receive(&adapter->napi, adapter->vlgrp,
+			    le16_to_cpu(vlan), skb);
+		else
+		    napi_gro_receive(&adapter->napi, skb);
+
+#endif  /* CONFIG_RA_HW_NAT_NIC_USB */
+
+
+
+
+
+
+
+
+
 }
 
 /**
@@ -4669,6 +4718,20 @@ static netdev_tx_t e1000_xmit_frame(struct sk_buff *skb,
 		dev_kfree_skb_any(skb);
 		return NETDEV_TX_OK;
 	}
+
+#if defined(CONFIG_RA_HW_NAT_NIC_USB)
+/* bruce+
+ */
+         if(ra_sw_nat_hook_tx!= NULL)
+         {
+	   //spin_lock_irqsave(&adapter->sw_t_lock, flags);
+           ra_sw_nat_hook_tx(skb);
+	   //spin_unlock_irqrestore(&adapter->sw_t_lock, flags);
+         }
+	 //skb_dump1(skb);
+	 //printk("skb->mac = %x, skb->nh = %x, skb->h = %x\n", skb->mac, skb->nh, skb->h);
+	 //printk("skb->head = %x, skb->data= %x, skb->tail = %x, skb->end = %s\n", skb->head, skb->data, skb->tail, skb->end);
+#endif
 
 	mss = skb_shinfo(skb)->gso_size;
 	/*

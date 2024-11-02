@@ -13,7 +13,7 @@
  * 	Wang Zhenyu at intel.com
  * 	Dave Jiang at mvista.com
  *
- * $Id: edac_e752x.c,v 1.5.2.11 2005/10/05 00:43:44 dsp_llnl Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/edac/e752x_edac.c#1 $
  *
  */
 

@@ -45,6 +45,13 @@
 #include <linux/usb/usbnet.h>
 #include <linux/slab.h>
 #include <linux/kernel.h>
+#include <linux/pm_runtime.h>
+
+#if defined (CONFIG_RA_HW_NAT_NIC_USB)
+#include "../../../net/nat/hw_nat/ra_nat.h"
+extern int (*ra_sw_nat_hook_rx)(struct sk_buff *skb);
+extern int (*ra_sw_nat_hook_tx)(struct sk_buff *skb, int gmac_no);
+#endif
 
 #define DRIVER_VERSION		"22-Aug-2005"
 
@@ -237,10 +244,35 @@ void usbnet_skb_return (struct usbnet *dev, struct sk_buff *skb)
 	netif_dbg(dev, rx_status, dev->net, "< rx, len %zu, type 0x%x\n",
 		  skb->len + sizeof (struct ethhdr), skb->protocol);
 	memset (skb->cb, 0, sizeof (struct skb_data));
+
+#if defined (CONFIG_RA_HW_NAT_NIC_USB)
+	 /* ra_sw_nat_hook_rx return 1 --> continue
+	  * ra_sw_nat_hook_rx return 0 --> FWD & without netif_rx
+	  */
+	FOE_MAGIC_TAG(skb)= FOE_MAGIC_PCI;
+	FOE_AI(skb)=UN_HIT;
+	if(ra_sw_nat_hook_rx!= NULL)
+	{
+		if(ra_sw_nat_hook_rx(skb)) {
+			status = netif_rx (skb);
+			if (status != NET_RX_SUCCESS) {
+				netif_dbg(dev, rx_err, dev->net, "netif_rx status %d\n", status);
+			}
+		}
+	} else  {
+		status = netif_rx (skb);
+		if (status != NET_RX_SUCCESS) {
+			netif_dbg(dev, rx_err, dev->net, "netif_rx status %d\n", status);
+		}
+	}
+	
+#else
 	status = netif_rx (skb);
 	if (status != NET_RX_SUCCESS)
 		netif_dbg(dev, rx_err, dev->net,
 			  "netif_rx status %d\n", status);
+#endif
+
 }
 EXPORT_SYMBOL_GPL(usbnet_skb_return);
 
@@ -323,13 +355,21 @@ static int rx_submit (struct usbnet *dev, struct urb *urb, gfp_t flags)
 	unsigned long		lockflags;
 	size_t			size = dev->rx_urb_size;
 
+#if defined (CONFIG_RA_HW_NAT_NIC_USB)
+	if ((skb = alloc_skb (size + NET_IP_ALIGN + FOE_INFO_LEN, flags)) == NULL) {
+#else
 	if ((skb = alloc_skb (size + NET_IP_ALIGN, flags)) == NULL) {
+#endif
 		netif_dbg(dev, rx_err, dev->net, "no rx skb\n");
 		usbnet_defer_kevent (dev, EVENT_RX_MEMORY);
 		usb_free_urb (urb);
 		return -ENOMEM;
 	}
+#if defined (CONFIG_RA_HW_NAT_NIC_USB)
+	skb_reserve (skb, NET_IP_ALIGN + FOE_INFO_LEN);
+#else
 	skb_reserve (skb, NET_IP_ALIGN);
+#endif
 
 	entry = (struct skb_data *) skb->cb;
 	entry->urb = urb;
@@ -1054,6 +1094,15 @@ netdev_tx_t usbnet_start_xmit (struct sk_buff *skb,
 		goto drop;
 	}
 
+#if defined (CONFIG_RA_HW_NAT_NIC_USB)
+	if(ra_sw_nat_hook_tx != NULL) {
+		retval = skb->data;
+	        skb->data = skb->mac_header; //pointer to DA
+		ra_sw_nat_hook_tx(skb, 1);
+		skb->data = retval;
+	}
+#endif
+
 	entry = (struct skb_data *) skb->cb;
 	entry->urb = urb;
 	entry->dev = dev;
@@ -1273,6 +1322,16 @@ usbnet_probe (struct usb_interface *udev, const struct usb_device_id *prod)
 	struct usb_device		*xdev;
 	int				status;
 	const char			*name;
+	struct usb_driver 	*driver = to_usb_driver(udev->dev.driver);
+
+	/* usbnet already took usb runtime pm, so have to enable the feature
+	 * for usb interface, otherwise usb_autopm_get_interface may return
+	 * failure if USB_SUSPEND(RUNTIME_PM) is enabled.
+	 */
+	if (!driver->supports_autosuspend) {
+		driver->supports_autosuspend = 1;
+		pm_runtime_enable(&udev->dev);
+	}
 
 	name = udev->dev.driver->name;
 	info = (struct driver_info *) prod->driver_info;
@@ -1318,7 +1377,7 @@ usbnet_probe (struct usb_interface *udev, const struct usb_device_id *prod)
 	mutex_init (&dev->phy_mutex);
 
 	dev->net = net;
-	strcpy (net->name, "usb%d");
+	strcpy (net->name, "lte%d");
 	memcpy (net->dev_addr, node_id, sizeof node_id);
 
 	/* rx and tx sides can use different message sizes;
@@ -1347,14 +1406,22 @@ usbnet_probe (struct usb_interface *udev, const struct usb_device_id *prod)
 		// else "eth%d" when there's reasonable doubt.  userspace
 		// can rename the link if it knows better.
 		if ((dev->driver_info->flags & FLAG_ETHER) != 0 &&
-		    (net->dev_addr [0] & 0x02) == 0)
-			strcpy (net->name, "eth%d");
+		    ((dev->driver_info->flags & FLAG_POINTTOPOINT) == 0 ||
+		     (net->dev_addr [0] & 0x02) == 0))
+			//strcpy (net->name, "eth%d");
+			strcpy (net->name, "lte%d");
 		/* WLAN devices should always be named "wlan%d" */
-		if ((dev->driver_info->flags & FLAG_WLAN) != 0)
-			strcpy(net->name, "wlan%d");
+		if ((dev->driver_info->flags & FLAG_WLAN) != 0){
+			//strcpy(net->name, "wlan%d");
+			strcpy(net->name, "lte%d");
+			}
 		/* WWAN devices should always be named "wwan%d" */
 		if ((dev->driver_info->flags & FLAG_WWAN) != 0)
-			strcpy(net->name, "wwan%d");
+		{
+			//strcpy(net->name, "wwan%d");
+			strcpy(net->name, "lte%d");
+		
+		}
 
 		/* maybe the remote can't receive an Ethernet MTU */
 		if (net->mtu > (dev->hard_mtu - net->hard_header_len))

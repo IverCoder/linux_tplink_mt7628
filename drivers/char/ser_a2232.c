@@ -1,6 +1,6 @@
 /* drivers/char/ser_a2232.c */
 
-/* $Id: ser_a2232.c,v 0.4 2000/01/25 12:00:00 ehaase Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/char/ser_a2232.c#1 $ */
 
 /* Linux serial driver for the Amiga A2232 board */
 

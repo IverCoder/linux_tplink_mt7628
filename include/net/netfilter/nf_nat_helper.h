@@ -54,4 +54,17 @@ extern void nf_nat_follow_master(struct nf_conn *ct,
 extern s16 nf_nat_get_offset(const struct nf_conn *ct,
 			     enum ip_conntrack_dir dir,
 			     u32 seq);
+
+extern int nf_nat_mangle_rtsp_packet(struct sk_buff *skb,
+			 struct nf_conn *ct,
+			 enum ip_conntrack_info ctinfo,
+			 unsigned int match_offset,
+			 unsigned int match_len,
+			 const char *rep_buffer,
+			 unsigned int rep_len);
+
+extern int nf_nat_mangle_rtsp_seq(struct sk_buff *skb,
+			 struct nf_conn *ct,
+			 enum ip_conntrack_info ctinfo,
+			 int sizeDiff);
 #endif

@@ -114,13 +114,22 @@ static struct ctl_table net_core_table[] = {
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec
 	},
-	{
+    {
 		.procname	= "netdev_max_backlog",
 		.data		= &netdev_max_backlog,
 		.maxlen		= sizeof(int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec
 	},
+#ifdef CONFIG_MULTICAST_PKT_FIRST
+    {
+		.procname	= "netdev_max_mbacklog",
+		.data		= &netdev_max_mbacklog,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec
+	},
+#endif
 	{
 		.procname	= "netdev_tstamp_prequeue",
 		.data		= &netdev_tstamp_prequeue,

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.12 2004/10/19 13:07:43 starvik Exp $
+# $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/kernel/Makefile#1 $
 #
 # Makefile for the linux kernel.
 #

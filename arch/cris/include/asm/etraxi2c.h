@@ -1,4 +1,4 @@
-/* $Id: etraxi2c.h,v 1.1 2001/01/18 15:49:57 bjornw Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/include/asm/etraxi2c.h#1 $ */
 
 #ifndef _LINUX_ETRAXI2C_H
 #define _LINUX_ETRAXI2C_H

@@ -154,13 +154,25 @@ static unsigned int ip_nat_sip(struct sk_buff *skb, unsigned int dataoff,
 		/* We're only interested in headers related to this
 		 * connection */
 		if (request) {
+/*Han Jiayan@20130621 add, For some sip msg's udp/tcp port is not same as SIP contact port*/			
+#if 0			
 			if (addr.ip != ct->tuplehash[dir].tuple.src.u3.ip ||
 			    port != ct->tuplehash[dir].tuple.src.u.udp.port)
 				goto next;
+#else
+			if (addr.ip != ct->tuplehash[dir].tuple.src.u3.ip)
+				goto next;
+#endif/*0*/
 		} else {
+/*Han Jiayan@20130621 add, For some sip msg's udp/tcp port is not same as SIP contact port*/		
+#if 0		
 			if (addr.ip != ct->tuplehash[dir].tuple.dst.u3.ip ||
 			    port != ct->tuplehash[dir].tuple.dst.u.udp.port)
 				goto next;
+#else
+			if (addr.ip != ct->tuplehash[dir].tuple.dst.u3.ip)
+				goto next;
+#endif
 		}
 
 		if (!map_addr(skb, dataoff, dptr, datalen, matchoff, matchlen,
@@ -329,6 +341,57 @@ err:
 	return NF_DROP;
 }
 
+/* hanjiayan@20130624, Add For local directly invire response.*/
+static void ip_nat_sip_response_expected(struct nf_conn *ct,
+				struct nf_conntrack_expect *exp)
+{
+	struct nf_nat_range range;
+
+	/* This must be a fresh one. */
+	BUG_ON(ct->status & IPS_NAT_DONE_MASK);
+
+	/* SNAT. */
+	range.flags = (IP_NAT_RANGE_MAP_IPS | IP_NAT_RANGE_PROTO_SPECIFIED);
+	range.min_ip = range.max_ip = exp->saved_ip;
+	range.min = range.max = exp->saved_proto;
+
+//	printk("%s()  SNAT %u.%u.%u.%u:%u\n", __FUNCTION__, NIPQUAD(range.min_ip), proto.udp.port);
+	
+	nf_nat_setup_info(ct, &range, IP_NAT_MANIP_SRC);
+}
+
+/* hanjiayan@20130624, Add For local directly invire response.*/
+static unsigned int ip_nat_sip_response_expect(struct sk_buff *skb,
+				      const char **dptr, unsigned int *datalen,
+				      struct nf_conntrack_expect *exp)
+{
+	enum ip_conntrack_info ctinfo;
+	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+	__be32 newip;
+	u_int16_t port;
+	int ret;
+	
+	/* Connection will come from reply */
+	if (ct->tuplehash[dir].tuple.src.u3.ip == ct->tuplehash[!dir].tuple.dst.u3.ip)
+	{
+		newip = ct->tuplehash[dir].tuple.dst.u3.ip;
+		port = ct->tuplehash[dir].tuple.dst.u.udp.port;
+	}
+	else
+	{
+		newip = ct->tuplehash[!dir].tuple.dst.u3.ip;
+		port = ct->tuplehash[!dir].tuple.dst.u.udp.port;
+	}
+
+	exp->saved_ip = newip;
+	exp->saved_proto.udp.port = port;
+	exp->expectfn = ip_nat_sip_response_expected;
+
+	ret = nf_ct_expect_related(exp);
+
+	return ret;
+}
 static int mangle_content_len(struct sk_buff *skb, unsigned int dataoff,
 			      const char **dptr, unsigned int *datalen)
 {
@@ -516,6 +579,7 @@ static void __exit nf_nat_sip_fini(void)
 	rcu_assign_pointer(nf_nat_sdp_port_hook, NULL);
 	rcu_assign_pointer(nf_nat_sdp_session_hook, NULL);
 	rcu_assign_pointer(nf_nat_sdp_media_hook, NULL);
+	rcu_assign_pointer(nf_nat_sip_response_expect_hook, NULL);
 	synchronize_rcu();
 }
 
@@ -528,6 +592,7 @@ static int __init nf_nat_sip_init(void)
 	BUG_ON(nf_nat_sdp_port_hook != NULL);
 	BUG_ON(nf_nat_sdp_session_hook != NULL);
 	BUG_ON(nf_nat_sdp_media_hook != NULL);
+	BUG_ON(nf_nat_sip_response_expect_hook != NULL);
 	rcu_assign_pointer(nf_nat_sip_hook, ip_nat_sip);
 	rcu_assign_pointer(nf_nat_sip_seq_adjust_hook, ip_nat_sip_seq_adjust);
 	rcu_assign_pointer(nf_nat_sip_expect_hook, ip_nat_sip_expect);
@@ -535,6 +600,7 @@ static int __init nf_nat_sip_init(void)
 	rcu_assign_pointer(nf_nat_sdp_port_hook, ip_nat_sdp_port);
 	rcu_assign_pointer(nf_nat_sdp_session_hook, ip_nat_sdp_session);
 	rcu_assign_pointer(nf_nat_sdp_media_hook, ip_nat_sdp_media);
+	rcu_assign_pointer(nf_nat_sip_response_expect_hook, ip_nat_sip_response_expect);
 	return 0;
 }
 

@@ -430,6 +430,9 @@ static int pppoe_rcv(struct sk_buff *skb, struct net_device *dev,
 	if (!skb)
 		goto out;
 
+	if (skb->pkt_type == PACKET_OTHERHOST)
+		goto drop;
+
 	if (!pskb_may_pull(skb, sizeof(struct pppoe_hdr)))
 		goto drop;
 
@@ -473,10 +476,14 @@ static int pppoe_disc_rcv(struct sk_buff *skb, struct net_device *dev,
 	struct pppoe_hdr *ph;
 	struct pppox_sock *po;
 	struct pppoe_net *pn;
+	int need_drop = 1;
 
 	skb = skb_share_check(skb, GFP_ATOMIC);
 	if (!skb)
 		goto out;
+
+	if (skb->pkt_type == PACKET_OTHERHOST)
+		goto abort;
 
 	if (!pskb_may_pull(skb, sizeof(struct pppoe_hdr)))
 		goto abort;
@@ -489,6 +496,13 @@ static int pppoe_disc_rcv(struct sk_buff *skb, struct net_device *dev,
 	po = get_item(pn, ph->sid, eth_hdr(skb)->h_source, dev->ifindex);
 	if (po) {
 		struct sock *sk = sk_pppox(po);
+		/* send PADT to pppd to alert server has down 
+		 * added by zhangwenkai, 2017.8.15
+ 		 */
+		if (sk->sk_state & PPPOX_BOUND) {
+			ppp_input(&po->chan, skb);
+			need_drop = 0;
+		}
 
 		bh_lock_sock(sk);
 
@@ -509,7 +523,8 @@ static int pppoe_disc_rcv(struct sk_buff *skb, struct net_device *dev,
 	}
 
 abort:
-	kfree_skb(skb);
+	if (need_drop == 1)
+		kfree_skb(skb);
 out:
 	return NET_RX_SUCCESS; /* Lies... :-) */
 }
@@ -948,7 +963,7 @@ static int __pppoe_xmit(struct sock *sk, struct sk_buff *skb)
 
 abort:
 	kfree_skb(skb);
-	return 0;
+	return 1;
 }
 
 /************************************************************************

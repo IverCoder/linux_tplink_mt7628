@@ -132,6 +132,11 @@
 #include <net/tcp.h>
 #endif
 
+/* add by wanghao  */
+#include <linux/sched_optimize.h>
+/* add end  */
+
+
 /*
  * Each address family might have different locking rules, so we have
  * one slock key per address family:
@@ -701,7 +706,7 @@ set_rcvbuf:
 	case SO_SNDTIMEO:
 		ret = sock_set_timeout(&sk->sk_sndtimeo, optval, optlen);
 		break;
-
+#ifdef CONFIG_NET_SK_FILTER
 	case SO_ATTACH_FILTER:
 		ret = -EINVAL;
 		if (optlen == sizeof(struct sock_fprog)) {
@@ -725,6 +730,7 @@ set_rcvbuf:
 		else
 			clear_bit(SOCK_PASSSEC, &sock->flags);
 		break;
+#endif
 	case SO_MARK:
 		if (!capable(CAP_NET_ADMIN))
 			ret = -EPERM;
@@ -744,6 +750,13 @@ set_rcvbuf:
 		ret = -ENOPROTOOPT;
 		break;
 	}
+
+	/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+	//stopWaitTaskTimer(current, 1);
+#endif
+	/* add end  */
+	
 	release_sock(sk);
 	return ret;
 }
@@ -1877,8 +1890,15 @@ static void sock_def_readable(struct sock *sk, int len)
 	rcu_read_lock();
 	wq = rcu_dereference(sk->sk_wq);
 	if (wq_has_sleeper(wq))
+	{
+		/* add by wanghao  */
+	#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+		checkTaskInWaitQueue(&wq->wait);
+	#endif
+		/* add end  */
 		wake_up_interruptible_sync_poll(&wq->wait, POLLIN |
 						POLLRDNORM | POLLRDBAND);
+	}
 	sk_wake_async(sk, SOCK_WAKE_WAITD, POLL_IN);
 	rcu_read_unlock();
 }

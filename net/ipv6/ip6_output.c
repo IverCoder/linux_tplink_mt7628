@@ -282,7 +282,7 @@ int ip6_nd_hdr(struct sock *sk, struct sk_buff *skb, struct net_device *dev,
 {
 	struct ipv6_pinfo *np = inet6_sk(sk);
 	struct ipv6hdr *hdr;
-	int totlen;
+	int totlen __maybe_unused;
 
 	skb->protocol = htons(ETH_P_IPV6);
 	skb->dev = dev;

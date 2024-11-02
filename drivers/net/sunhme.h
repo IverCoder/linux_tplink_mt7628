@@ -1,4 +1,4 @@
-/* $Id: sunhme.h,v 1.33 2001/08/03 06:23:04 davem Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/sunhme.h#1 $
  * sunhme.h: Definitions for Sparc HME/BigMac 10/100baseT ethernet driver.
  *           Also known as the "Happy Meal".
  *

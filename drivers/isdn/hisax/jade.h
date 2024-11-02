@@ -1,4 +1,4 @@
-/* $Id: jade.h,v 1.5.2.3 2004/01/14 16:04:48 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/jade.h#1 $
  *
  * JADE specific defines
  *

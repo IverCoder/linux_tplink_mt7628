@@ -55,6 +55,13 @@
 
 #define PPP_VERSION	"2.4.2"
 
+/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+#include <linux/sched_optimize.h>
+#endif
+/* add end  */
+
+
 /*
  * Network protocols we support.
  */
@@ -1036,6 +1043,10 @@ static void ppp_setup(struct net_device *dev)
 	dev->flags = IFF_POINTOPOINT | IFF_NOARP | IFF_MULTICAST;
 	dev->features |= NETIF_F_NETNS_LOCAL;
 	dev->priv_flags &= ~IFF_XMIT_DST_RELEASE;
+	
+/* added by yangxv for QoS */
+	dev->priv_flags |= IFF_WAN_DEV;
+/* end added */
 }
 
 /*
@@ -1562,6 +1573,58 @@ ppp_do_recv(struct ppp *ppp, struct sk_buff *skb, struct channel *pch)
 	ppp_recv_unlock(ppp);
 }
 
+#ifdef CONFIG_REPLY_LCP_AT_KERNEL
+unsigned char LCP_MAGIC_NUM[4] = {0,0,0,0};
+#ifndef MAC_ADDR_LEN
+#define MAC_ADDR_LEN 6
+#endif
+
+#include "linux/if_pppox.h"
+static int reply_lcp_echo(struct ppp_channel *chan, struct sk_buff *skb)
+{
+	int ret;
+	struct sock *sk = chan->private;
+	unsigned char dstmac[MAC_ADDR_LEN];
+	unsigned char srcmac[MAC_ADDR_LEN];
+
+	unsigned char *magic = NULL;
+
+	//??¡¤¡é¡ã¨¹¨¦¨¨¡À?
+	struct pppox_sock *po = pppox_sk(sk);
+	struct net_device *dev = po->pppoe_dev;
+
+	struct lcp_head *lcphead;
+	lcphead = (struct lcp_head *)&(skb)->data[2];
+
+	skb->dev = dev;
+
+	//¡¤-¡Áa??¦Ì?/?¡äMAC¦Ì??¡¤
+	memcpy((void *)dstmac, (void *)eth_hdr(skb)->h_source, sizeof(dstmac));
+	memcpy((void *)srcmac, (void *)eth_hdr(skb)->h_dest, sizeof(srcmac));
+	memcpy((void *)eth_hdr(skb)->h_source, (void *)srcmac, sizeof(srcmac));
+	memcpy((void *)eth_hdr(skb)->h_dest, (void *)dstmac, sizeof(dstmac));
+
+	//DT??code?areply
+	lcphead->code = LCP_CODE_ECHO_REPLY;
+
+	magic = (unsigned char *)(lcphead + 1);
+
+	//DT??magic number
+	magic[0] = LCP_MAGIC_NUM[0];
+	magic[1] = LCP_MAGIC_NUM[1];
+	magic[2] = LCP_MAGIC_NUM[2];
+	magic[3] = LCP_MAGIC_NUM[3];
+
+	//DT??skb¨®DD¡ì¨ºy?Y????
+	skb->len = skb->tail - skb->mac_header;
+	skb->data = skb->mac_header;
+
+	ret = dev_queue_xmit(skb);
+
+	return ret;
+}
+#endif
+
 void
 ppp_input(struct ppp_channel *chan, struct sk_buff *skb)
 {
@@ -1584,7 +1647,64 @@ ppp_input(struct ppp_channel *chan, struct sk_buff *skb)
 	}
 
 	proto = PPP_PROTO(skb);
-	if (!pch->ppp || proto >= 0xc000 || proto == PPP_CCPFRAG) {
+#define TP_PPP_PADT 0x11a7
+	if (!pch->ppp || proto >= 0xc000 || proto == PPP_CCPFRAG || proto == TP_PPP_PADT) {
+		/* yuanshang ,record lcp reply to rx ,2010-07-19 */
+		if( (proto == 0xc021) && (skb->data[2] == 10)
+			&& (skb->data[2] == 9) )/*lcp echo reply*/
+		{			
+			++((pch->ppp)->dev->stats.rx_packets);
+			(pch->ppp)->dev->stats.rx_bytes += skb->len - 2;
+		}
+		/* end added */		
+
+	#ifdef CONFIG_REPLY_LCP_AT_KERNEL
+		//lcp
+		if (proto == PPP_LCP)
+		{
+			unsigned char *lcpdata = NULL;
+			struct lcp_head *lcphead;
+
+			lcphead = (struct lcp_head *)&(skb)->data[2];
+			//lcp config ack, log magic number
+			if (lcphead->code == LCP_CODE_CFG_ACK)
+			{
+				struct lcp_cfg_option *cfgopg = (struct lcp_cfg_option *)(lcphead + 1);
+				__u16 total_len = lcphead->length - sizeof(struct lcp_head);
+				__u16 proc_len = 0;
+
+				while(proc_len < total_len)
+				{
+					if (cfgopg->type == LCP_CFG_OPT_MAGIC)
+					{
+						LCP_MAGIC_NUM[0] = cfgopg->data[0];
+						LCP_MAGIC_NUM[1] = cfgopg->data[1];
+						LCP_MAGIC_NUM[2] = cfgopg->data[2];
+						LCP_MAGIC_NUM[3] = cfgopg->data[3];
+						break;
+					}
+
+					proc_len += cfgopg->length;
+					cfgopg = (struct lcp_cfg_option *)(((__u8 *)cfgopg) + cfgopg->length);
+				}
+			}
+			//lcp echo request, send lcp echo reply
+			else if (lcphead->code == LCP_CODE_ECHO_REQUEST)
+			{
+				//struct sk_buff *copyskb = skb_copy(skb, GFP_ATOMIC);
+				reply_lcp_echo(chan, skb);
+				//kfree_skb(copyskb);
+				goto done;
+			}
+		}
+	#endif
+
+		/* add by wanghao  */
+	#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+		checkTaskInWaitQueue(&pch->file.rwait);
+	#endif
+		/* add end  */
+		
 		/* put it on the channel queue */
 		skb_queue_tail(&pch->file.rq, skb);
 		/* drop old frames if queue too long */

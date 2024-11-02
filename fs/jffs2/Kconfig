@@ -64,7 +64,7 @@ config JFFS2_SUMMARY
 
 config JFFS2_FS_XATTR
 	bool "JFFS2 XATTR support (EXPERIMENTAL)"
-	depends on JFFS2_FS && EXPERIMENTAL
+	depends on JFFS2_FS && XATTR && EXPERIMENTAL
 	default n
 	help
 	  Extended attributes are name:value pairs associated with inodes by
@@ -138,6 +138,15 @@ config JFFS2_LZO
 
 	  This feature was added in July, 2007. Say 'N' if you need
 	  compatibility with older bootloaders or kernels.
+
+config JFFS2_LZMA
+	bool "JFFS2 LZMA compression support" if JFFS2_COMPRESSION_OPTIONS
+	select LZMA_COMPRESS
+	select LZMA_DECOMPRESS
+	depends on JFFS2_FS
+	default n
+	help
+	  JFFS2 wrapper to the LZMA C SDK
 
 config JFFS2_RTIME
 	bool "JFFS2 RTIME compression support" if JFFS2_COMPRESSION_OPTIONS

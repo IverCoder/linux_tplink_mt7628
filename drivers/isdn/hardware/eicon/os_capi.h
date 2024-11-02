@@ -1,4 +1,4 @@
-/* $Id: os_capi.h,v 1.7 2003/04/12 21:40:49 schindler Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/eicon/os_capi.h#1 $
  *
  * ISDN interface module for Eicon active cards DIVA.
  * CAPI Interface OS include files 

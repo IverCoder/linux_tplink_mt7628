@@ -1,4 +1,4 @@
-/* $Id: capi.c,v 1.1.2.7 2004/04/28 09:48:59 armin Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/capi/capi.c#1 $
  *
  * CAPI 2.0 Interface for Linux
  *

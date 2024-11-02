@@ -149,6 +149,10 @@ struct net_bridge_port
 #ifdef CONFIG_NET_POLL_CONTROLLER
 	struct netpoll			*np;
 #endif
+
+#ifdef CONFIG_BRIDGE_VLAN
+	int	vlan_id;
+#endif
 };
 
 #define br_port_get_rcu(dev) \
@@ -211,6 +215,8 @@ struct net_bridge
 	unsigned char			multicast_router;
 
 	u8				multicast_disabled:1;
+    u8              igmp_query_version:2;
+    u8              mld_query_version:2;
 
 	u32				hash_elasticity;
 	u32				hash_max;
@@ -510,7 +516,7 @@ extern void br_stp_port_timer_init(struct net_bridge_port *p);
 extern unsigned long br_timer_value(const struct timer_list *timer);
 
 /* br.c */
-#if defined(CONFIG_ATM_LANE) || defined(CONFIG_ATM_LANE_MODULE)
+#if defined(CONFIG_ATM_LANE) || defined(CONFIG_ATM_LANE_MODULE) || defined(CONFIG_MACVLAN)
 extern int (*br_fdb_test_addr_hook)(struct net_device *dev, unsigned char *addr);
 #endif
 

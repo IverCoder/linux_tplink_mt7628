@@ -1,4 +1,4 @@
-/* $Id: message.c,v 1.5.8.2 2001/09/23 22:24:59 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/sc/message.c#1 $
  *
  * functions for sending and receiving control messages
  *

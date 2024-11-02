@@ -25,3 +25,19 @@ config DNS_RESOLVER
 	  dnsresolver.
 
 	  If unsure, say N.
+
+config TPLOGIN_REDIRECT
+	bool "TP-Link Domain service - tplinklogin redirect"
+	default n
+	
+config TPDOMAIN_AP
+	bool "TP-Link Domain service - AP mode (tplinkap.net)"
+	default n
+
+config TPDOMAIN_WEBSITES
+	string "TP-Link Domain service websites"
+	default "tplinkwifi.net"
+	help
+	  The websites should be strictly delimited by only one space, and no 
+	  left or right spaces exists. For example, "tplinkwifi.net tplinkap.net"
+	  is legal, but " tplinkwifi.net" or "tplinkwifi.net  tplinkap.net" is illegal.

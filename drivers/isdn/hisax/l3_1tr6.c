@@ -1,4 +1,4 @@
-/* $Id: l3_1tr6.c,v 2.15.2.3 2004/01/13 14:31:25 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/l3_1tr6.c#1 $
  *
  * German 1TR6 D-channel protocol
  *
@@ -19,7 +19,7 @@
 #include <linux/ctype.h>
 
 extern char *HiSax_getrev(const char *revision);
-static const char *l3_1tr6_revision = "$Revision: 2.15.2.3 $";
+static const char *l3_1tr6_revision = "$Revision: #1 $";
 
 #define MsgHead(ptr, cref, mty, dis) \
 	*ptr++ = dis; \

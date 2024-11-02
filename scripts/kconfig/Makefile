@@ -117,7 +117,12 @@ else
 endif
 
 %_defconfig: $(obj)/conf
+ifneq ($(TP_CONFIG_FILE),)
+	@echo "-------Use new kernel config file dir!"
+	$(Q)$< --defconfig=$(TP_CONFIG_FILE) $(Kconfig)
+else
 	$(Q)$< --defconfig=arch/$(SRCARCH)/configs/$@ $(Kconfig)
+endif
 
 # Help text used by make help
 help:

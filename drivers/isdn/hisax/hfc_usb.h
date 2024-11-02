@@ -1,7 +1,7 @@
 /*
  * hfc_usb.h
  *
- * $Id: hfc_usb.h,v 1.1.2.5 2007/08/20 14:36:03 mbachem Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/hfc_usb.h#1 $
  */
 
 #ifndef __HFC_USB_H__

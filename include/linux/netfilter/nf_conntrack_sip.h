@@ -2,8 +2,46 @@
 #define __NF_CONNTRACK_SIP_H__
 #ifdef __KERNEL__
 
+
+#define SIP_ALG_DEBUG_MODE	0
+
+#if SIP_ALG_DEBUG_MODE
+#define SIP_ALG_DBG(x, args...)\
+	do\
+	{\
+		printk("[%s %d] "x, __FUNCTION__, __LINE__, ##args);\
+		printk("\n"); \
+	}\
+	while(0) 
+#else
+#define SIP_ALG_DBG(x, args...)
+#endif /*SIP_ALG_DEBUG*/
+
+#define SIP_EXPECT_SIGNALLING_TIMEOUT 	10
+#define SIP_EXPECT_MEDIA_TIMEOUT			3*60
+#define MAX_SIP_INFO_NUM					100
+
 #define SIP_PORT	5060
 #define SIP_TIMEOUT	3600
+
+#define SIP_MAX_MEDIA_DESCRIPTION 16
+enum SIP_INFO_TYPE{
+	EXP_DST,
+	LOCAL	
+};
+
+struct sip_info 
+{
+	__be32 exp_dst_ip;
+	__be32 local_ip;
+	__be16 exp_dst_port;
+	__be16 local_port;
+	__be16 nat_media_port[SIP_MAX_MEDIA_DESCRIPTION];
+	__be16 local_media_port[SIP_MAX_MEDIA_DESCRIPTION];
+	unsigned char media_num;
+	struct timer_list timeout;
+	struct list_head head;
+};
 
 struct nf_ct_sip_master {
 	unsigned int	register_cseq;
@@ -89,6 +127,7 @@ enum sip_header_types {
 	SIP_HDR_VIA_TCP,
 	SIP_HDR_EXPIRES,
 	SIP_HDR_CONTENT_LENGTH,
+	SIP_HDR_CALL_ID,
 };
 
 enum sdp_header_types {
@@ -143,6 +182,10 @@ extern unsigned int (*nf_nat_sdp_media_hook)(struct sk_buff *skb,
 					     unsigned int mediaoff,
 					     unsigned int medialen,
 					     union nf_inet_addr *rtp_addr);
+extern unsigned int (*nf_nat_sip_response_expect_hook)(struct sk_buff *skb,
+				      const char **dptr,
+				      unsigned int *datalen,
+				      struct nf_conntrack_expect *exp);
 
 extern int ct_sip_parse_request(const struct nf_conn *ct,
 				const char *dptr, unsigned int datalen,
@@ -173,6 +216,13 @@ extern int ct_sip_get_sdp_header(const struct nf_conn *ct, const char *dptr,
 				 enum sdp_header_types type,
 				 enum sdp_header_types term,
 				 unsigned int *matchoff, unsigned int *matchlen);
+
+/*Han Jiayan@20130621 add*/
+/*extern int addSipInfo(__be32 dst_ip, __be16 dst_port,
+					__be32 local_ip, __be16 local_port, 
+					unsigned int expire);*/
+extern int map_addr_according_expectition(struct sk_buff *skb,
+			__be32 *addr, __be16 *port);
 
 #endif /* __KERNEL__ */
 #endif /* __NF_CONNTRACK_SIP_H__ */

@@ -7,7 +7,7 @@
  *                  in the IOCLogInfo field of a MPI Default Reply Message.
  *
  *  CREATION DATE:  6/02/2000
- *  ID:             $Id: fc_log.h,v 4.6 2001/07/26 14:41:33 sschremm Exp $
+ *  ID:             $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/message/fusion/lsi/mpi_log_fc.h#1 $
  */
 
 

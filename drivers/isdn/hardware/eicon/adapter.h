@@ -1,4 +1,4 @@
-/* $Id: adapter.h,v 1.4 2004/03/21 17:26:01 armin Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/eicon/adapter.h#1 $ */
 
 #ifndef __DIVA_USER_MODE_IDI_ADAPTER_H__
 #define __DIVA_USER_MODE_IDI_ADAPTER_H__

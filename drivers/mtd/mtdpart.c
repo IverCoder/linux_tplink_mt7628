@@ -30,6 +30,8 @@
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>
 
+#include <linux/root_dev.h>
+
 /* Our partition linked list */
 static LIST_HEAD(mtd_partitions);
 
@@ -547,6 +549,15 @@ int add_mtd_partitions(struct mtd_info *master,
 		slave = add_one_partition(master, parts + i, i, cur_offset);
 		if (!slave)
 			return -ENOMEM;
+		/* add by wanghao  */
+		if (!strcmp(parts[i].name, "rootfs")) {
+			if (ROOT_DEV == 0) {
+				printk(KERN_NOTICE "mtd: partition \"rootfs\" "
+					"set to be root filesystem\n");
+				ROOT_DEV = MKDEV(MTD_BLOCK_MAJOR, slave->mtd.index);
+			}
+		}
+		/* add end  */		
 		cur_offset = slave->offset + slave->mtd.size;
 	}
 

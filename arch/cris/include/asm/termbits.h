@@ -1,4 +1,4 @@
-/* $Id: termbits.h,v 1.1 2000/07/10 16:32:31 bjornw Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/arch/cris/include/asm/termbits.h#1 $ */
 
 #ifndef __ARCH_ETRAX100_TERMBITS_H__
 #define __ARCH_ETRAX100_TERMBITS_H__

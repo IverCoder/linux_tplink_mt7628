@@ -134,6 +134,9 @@ void __init proc_root_init(void)
 	proc_device_tree_init();
 #endif
 	proc_mkdir("bus", NULL);
+	/* build tplink folder */
+	proc_mkdir("tplink", NULL);
+
 	proc_sys_init();
 }
 

@@ -40,7 +40,7 @@
  * $FreeBSD$
  */
 
-VERSION = "$Id: //depot/aic7xxx/aic7xxx/aic7xxx.seq#58 $"
+VERSION = "$Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/aic7xxx/aic7xxx.seq#1 $"
 PATCH_ARG_LIST = "struct ahc_softc *ahc"
 PREFIX = "ahc_"
 

@@ -1,4 +1,4 @@
-/* $Id: isdn.h,v 1.125.2.3 2004/02/10 01:07:14 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/isdn.h#1 $
  *
  * Main header for the Linux ISDN subsystem (linklevel).
  *

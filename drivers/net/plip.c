@@ -1,4 +1,4 @@
-/* $Id: plip.c,v 1.3.6.2 1997/04/16 15:07:56 phil Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/plip.c#1 $ */
 /* PLIP: A parallel port "network" driver for Linux. */
 /* This driver is for parallel port with 5-bit cable (LapLink (R) cable). */
 /*

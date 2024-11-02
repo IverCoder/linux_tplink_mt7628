@@ -983,6 +983,7 @@ SYSCALL_DEFINE1(close, unsigned int, fd)
 	rcu_assign_pointer(fdt->fd[fd], NULL);
 	FD_CLR(fd, fdt->close_on_exec);
 	__put_unused_fd(files, fd);
+
 	spin_unlock(&files->file_lock);
 	retval = filp_close(filp, files);
 

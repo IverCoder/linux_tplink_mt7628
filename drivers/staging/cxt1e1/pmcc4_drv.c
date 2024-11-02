@@ -1,5 +1,5 @@
 /*
- * $Id: pmcc4_drv.c,v 3.1 2007/08/15 23:32:17 rickd PMCC4_3_1B $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/staging/cxt1e1/pmcc4_drv.c#1 $
  */
 
 
@@ -23,9 +23,9 @@
  * One Stop Systems, Inc.  Escondido, California  U.S.A.
  *-----------------------------------------------------------------------------
  * RCS info:
- * RCS revision: $Revision: 3.1 $
- * Last changed on $Date: 2007/08/15 23:32:17 $
- * Changed by $Author: rickd $
+ * RCS revision: $Revision: #1 $
+ * Last changed on $Date: 2014/05/07 $
+ * Changed by $Author: red.hung $
  *-----------------------------------------------------------------------------
  * $Log: pmcc4_drv.c,v $
  * Revision 3.1  2007/08/15 23:32:17  rickd
@@ -81,7 +81,7 @@
  */
 
 char        OSSIid_pmcc4_drvc[] =
-"@(#)pmcc4_drv.c - $Revision: 3.1 $   (c) Copyright 2002-2007 One Stop Systems, Inc.";
+"@(#)pmcc4_drv.c - $Revision: #1 $   (c) Copyright 2002-2007 One Stop Systems, Inc.";
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 

@@ -1,4 +1,4 @@
-/* $Id: kcapi.c,v 1.1.2.8 2004/03/26 19:57:20 armin Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/capi/kcapi.c#1 $
  * 
  * Kernel CAPI 2.0 Module
  * 

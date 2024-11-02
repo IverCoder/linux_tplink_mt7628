@@ -81,6 +81,11 @@
 #include <linux/netlink.h>
 #include <linux/tcp.h>
 
+#if defined(CONFIG_RA_HW_NAT) || defined(CONFIG_RA_HW_NAT_MODULE)
+#include "../../net/nat/hw_nat/ra_nat.h"
+#include "../../net/nat/hw_nat/frame_engine.h"
+#endif
+
 int sysctl_ip_default_ttl __read_mostly = IPDEFTTL;
 
 /* Generate a checksum for an outgoing IP datagram. */
@@ -97,6 +102,7 @@ int __ip_local_out(struct sk_buff *skb)
 
 	iph->tot_len = htons(skb->len);
 	ip_send_check(iph);
+
 	return nf_hook(NFPROTO_IPV4, NF_INET_LOCAL_OUT, skb, NULL,
 		       skb_dst(skb)->dev, dst_output);
 }
@@ -391,8 +397,24 @@ packet_routed:
 			     (skb_shinfo(skb)->gso_segs ?: 1) - 1);
 
 	skb->priority = sk->sk_priority;
-	skb->mark = sk->sk_mark;
 
+	if(0 == skb->mark)
+	{
+		skb->mark = sk->sk_mark;
+	}
+
+#if  defined(CONFIG_RA_HW_NAT) || defined(CONFIG_RA_HW_NAT_MODULE)
+#if defined (CONFIG_RA_HW_NAT_PPTP_L2TP)
+	/* only clear TCP headeroom*/
+	if(iph->protocol == 0x6) {
+		FOE_MAGIC_TAG(skb) = 0;
+		FOE_AI(skb) = UN_HIT;
+	}
+#else	
+	FOE_MAGIC_TAG(skb) = 0;
+	FOE_AI(skb) = UN_HIT;
+#endif
+#endif
 	res = ip_local_out(skb);
 	rcu_read_unlock();
 	return res;
@@ -1450,6 +1472,8 @@ void __init ip_init(void)
 	inet_initpeers();
 
 #if defined(CONFIG_IP_MULTICAST) && defined(CONFIG_PROC_FS)
+#ifdef CONFIG_IGMP
 	igmp_mc_proc_init();
+#endif
 #endif
 }

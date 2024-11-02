@@ -213,11 +213,26 @@ int usbnet_generic_cdc_bind(struct usbnet *dev, struct usb_interface *intf)
 
 			/* a data interface altsetting does the real i/o */
 			d = &info->data->cur_altsetting->desc;
+			
+			/*changed by ZQQ, 2012.03.16 for huawei E398, from http://www.spinics.net/lists/linux-usb/msg55143.html*/
+			#if 0 /*original*/
 			if (d->bInterfaceClass != USB_CLASS_CDC_DATA) {
 				dev_dbg(&intf->dev, "slave class %u\n",
 					d->bInterfaceClass);
 				goto bad_desc;
 			}
+			#endif /*changed to follows*/
+			if ((d->bInterfaceClass != USB_CLASS_CDC_DATA) &&
+				/* Allow vendor specific data interface iff 
+				   control interface is vendor specific */
+				!(info->control->cur_altsetting->desc.bInterfaceClass == USB_CLASS_VENDOR_SPEC &&
+					d->bInterfaceClass == USB_CLASS_VENDOR_SPEC)) {
+				dev_dbg(&intf->dev, "xslave class %u\n",
+ 					d->bInterfaceClass);
+ 				goto bad_desc;
+			}
+			/*end changed*/
+			
 			break;
 		case USB_CDC_ETHERNET_TYPE:
 			if (info->ether) {
@@ -380,7 +395,7 @@ static void dumpspeed(struct usbnet *dev, __le32 *speeds)
 		   __le32_to_cpu(speeds[1]) / 1000);
 }
 
-static void cdc_status(struct usbnet *dev, struct urb *urb)
+void usbnet_cdc_status(struct usbnet *dev, struct urb *urb)
 {
 	struct usb_cdc_notification	*event;
 
@@ -420,8 +435,9 @@ static void cdc_status(struct usbnet *dev, struct urb *urb)
 		break;
 	}
 }
+EXPORT_SYMBOL_GPL(usbnet_cdc_status);
 
-static int cdc_bind(struct usbnet *dev, struct usb_interface *intf)
+int usbnet_cdc_bind(struct usbnet *dev, struct usb_interface *intf)
 {
 	int				status;
 	struct cdc_state		*info = (void *) &dev->data;
@@ -443,6 +459,7 @@ static int cdc_bind(struct usbnet *dev, struct usb_interface *intf)
 	 */
 	return 0;
 }
+EXPORT_SYMBOL_GPL(usbnet_cdc_bind);
 
 static int cdc_manage_power(struct usbnet *dev, int on)
 {
@@ -452,25 +469,26 @@ static int cdc_manage_power(struct usbnet *dev, int on)
 
 static const struct driver_info	cdc_info = {
 	.description =	"CDC Ethernet Device",
-	.flags =	FLAG_ETHER,
+	.flags =	FLAG_ETHER | FLAG_POINTTOPOINT,
 	// .check_connect = cdc_check_connect,
-	.bind =		cdc_bind,
+	.bind =		usbnet_cdc_bind,
 	.unbind =	usbnet_cdc_unbind,
-	.status =	cdc_status,
+        .status =       usbnet_cdc_status,
 	.manage_power =	cdc_manage_power,
 };
 
 static const struct driver_info mbm_info = {
 	.description =	"Mobile Broadband Network Device",
 	.flags =	FLAG_WWAN,
-	.bind = 	cdc_bind,
+	.bind =		usbnet_cdc_bind,
 	.unbind =	usbnet_cdc_unbind,
-	.status =	cdc_status,
+	.status =	usbnet_cdc_status,
 	.manage_power =	cdc_manage_power,
 };
 
 /*-------------------------------------------------------------------------*/
 
+#define HUAWEI_VENDOR_ID	0x12D1
 
 static const struct usb_device_id	products [] = {
 /*
@@ -562,6 +580,19 @@ static const struct usb_device_id	products [] = {
 	.driver_info		= 0,
 },
 
+/* LG Electronics VL600 wants additional headers on every frame 
+{
+	USB_DEVICE_AND_INTERFACE_INFO(0x1004, 0x61aa, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_ETHERNET, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long)&wwan_info,
+},
+*/
+{
+	USB_DEVICE_AND_INTERFACE_INFO(0x1004, 0x61aa, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_ETHERNET, USB_CDC_PROTO_NONE),
+	.driver_info = 0,
+},
+
 /*
  * WHITELIST!!!
  *
@@ -578,10 +609,89 @@ static const struct usb_device_id	products [] = {
 			USB_CDC_PROTO_NONE),
 	.driver_info = (unsigned long) &cdc_info,
 }, {
+	/* Ericsson F3507g */
+	USB_DEVICE_AND_INTERFACE_INFO(0x0bdb, 0x1900, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Ericsson F3507g ver. 2 */
+	USB_DEVICE_AND_INTERFACE_INFO(0x0bdb, 0x1902, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Ericsson F3607gw */
+	USB_DEVICE_AND_INTERFACE_INFO(0x0bdb, 0x1904, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Ericsson F3607gw ver 2 */
+	USB_DEVICE_AND_INTERFACE_INFO(0x0bdb, 0x1905, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Ericsson F3607gw ver 3 */
+	USB_DEVICE_AND_INTERFACE_INFO(0x0bdb, 0x1906, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Ericsson F3307 */
+	USB_DEVICE_AND_INTERFACE_INFO(0x0bdb, 0x190a, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Ericsson F3307 ver 2 */
+	USB_DEVICE_AND_INTERFACE_INFO(0x0bdb, 0x1909, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Ericsson C3607w */
+	USB_DEVICE_AND_INTERFACE_INFO(0x0bdb, 0x1049, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Toshiba F3507g */
+	USB_DEVICE_AND_INTERFACE_INFO(0x0930, 0x130b, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Toshiba F3607gw */
+	USB_DEVICE_AND_INTERFACE_INFO(0x0930, 0x130c, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Toshiba F3607gw ver 2 */
+	USB_DEVICE_AND_INTERFACE_INFO(0x0930, 0x1311, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Dell F3507g */
+	USB_DEVICE_AND_INTERFACE_INFO(0x413c, 0x8147, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Dell F3607gw */
+	USB_DEVICE_AND_INTERFACE_INFO(0x413c, 0x8183, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+}, {
+	/* Dell F3607gw ver 2 */
+	USB_DEVICE_AND_INTERFACE_INFO(0x413c, 0x8184, USB_CLASS_COMM,
+			USB_CDC_SUBCLASS_MDLM, USB_CDC_PROTO_NONE),
+	.driver_info = (unsigned long) &cdc_info,
+},{
 	USB_INTERFACE_INFO(USB_CLASS_COMM, USB_CDC_SUBCLASS_MDLM,
 			USB_CDC_PROTO_NONE),
 	.driver_info = (unsigned long)&mbm_info,
 
+}, {
+	/* Various Huawei modems with a network port like the UMG1831 */
+	.match_flags    =   USB_DEVICE_ID_MATCH_VENDOR
+		 | USB_DEVICE_ID_MATCH_INT_INFO,
+	.idVendor               = HUAWEI_VENDOR_ID,
+	.bInterfaceClass	= USB_CLASS_COMM,
+	.bInterfaceSubClass	= USB_CDC_SUBCLASS_ETHERNET,
+	.bInterfaceProtocol	= 255,
+	.driver_info = (unsigned long)&mbm_info,
 },
 	{ },		// END
 };

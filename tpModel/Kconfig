@@ -1,0 +1,116 @@
+menu "TPLINK Model"
+
+choice
+       prompt "TP-LINK Product MODEL"
+       default TP_MODEL_C2V1
+
+config TP_MODEL_C20iV1
+       bool "Build ArcherC20i V1"
+
+config TP_MODEL_C2V1
+       bool "Build ArcherC2 V1"
+	   
+config TP_MODEL_C20V1
+       bool "Build ArcherC20 V1"
+	   
+config TP_MODEL_C50V1
+       bool "Build ArcherC50 V1"
+
+config TP_MODEL_C50V3
+       bool "Build ArcherC50 V3"
+
+config TP_MODEL_C55V1
+       bool "Build ArcherC55 V1"
+
+config TP_MODEL_A1201V1
+        bool "Build TL-WA1201AC V1"
+	   
+config TP_MODEL_WR840NV4
+       bool "Build TL-WR840N V4"
+
+config TP_MODEL_WR840NV5
+	bool "Build TL-WR840N V5"
+	select WR840NV5_GPIO
+	select WR840NV5_ETH_PORTS
+
+config TP_MODEL_WR840NV6
+	bool "Build TL-WR840N V6"
+	select WR840NV5_GPIO
+	select WR840NV5_ETH_PORTS
+	
+config TP_MODEL_WR840NV6_20
+	bool "Build TL-WR840N V6.20"
+	select WR840NV5_ETH_PORTS
+	
+config TP_MODEL_WR841NV13
+       bool "Build TL-WR841N V13"
+
+config TP_MODEL_WR841NV14
+	bool "Build TL-WR841N V14"
+	select WR840NV5_ETH_PORTS
+
+config TP_MODEL_WR845NV3
+       bool "Build TL-WR845N V3"
+
+config TP_MODEL_WR845NV4
+	bool "Build TL-WR845N V4"
+	select WR840NV5_ETH_PORTS
+
+config TP_MODEL_WR841HPV5
+       bool "Build TL-WR841HP 5.0"
+
+config TP_MODEL_C20V4
+       bool "Build ArcherC20 V4"
+
+config TP_MODEL_C20V5
+       bool "Build ArcherC20 V5"
+
+config TP_MODEL_WA801NDV5
+       bool "Build TP_MODEL_WA801ND V5"
+
+config TP_MODEL_C50V4
+       bool "Build ArcherC50 V4"
+
+config TP_MODEL_C50V5
+       bool "Build ArcherC50 V5"
+
+config TP_MODEL_WR802NV4
+       bool "Build TP_MODEL_WR802N V4"
+
+config TP_MODEL_WR810NV4
+       bool "Build TP_MODEL_WR810N V4"
+
+config TP_MODEL_C2V5
+       bool "Build ArcherC2 V5"
+	   
+config TP_MODEL_WR902ACV3
+       bool "Build TP_MODEL_WR902AC V3"
+
+config TP_MODEL_C6V1
+       bool "Build ArcherC6 V1"
+
+endchoice
+
+config WR840NV5_GPIO
+        bool "WR840NV5 hardware GPIO"
+        default n
+        
+config WR840NV5_ETH_PORTS
+        bool "WR840NV5 hardware ethernet ports"
+        default n
+		
+config SOFTIRQ_DYNAMIC_TUNNING
+        bool "Adjust the time slice of softirq processing"
+        default n
+
+config ACTIVE_FLOW_CONTROL
+        bool "Actively discarding some data packets"
+        default n
+
+config REPLY_LCP_AT_KERNEL
+        bool "Reply LCP request in kernel directly"
+        default n
+        
+endmenu
+
+

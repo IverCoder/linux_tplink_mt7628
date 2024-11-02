@@ -1,4 +1,4 @@
-/* $Id: lmc_media.c,v 1.13 2000/04/11 05:25:26 asj Exp $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/wan/lmc/lmc_media.c#1 $ */
 
 #include <linux/kernel.h>
 #include <linux/string.h>

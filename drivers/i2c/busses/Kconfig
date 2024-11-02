@@ -627,6 +627,9 @@ config I2C_XILINX
 	  This driver can also be built as a module.  If so, the module
 	  will be called xilinx_i2c.
 
+config I2C_RALINK
+	tristate "Ralink I2C Controller"
+
 comment "External I2C/SMBus adapter drivers"
 
 config I2C_PARPORT

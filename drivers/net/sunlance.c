@@ -1,4 +1,4 @@
-/* $Id: sunlance.c,v 1.112 2002/01/15 06:48:55 davem Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/sunlance.c#1 $
  * lance.c: Linux/Sparc/Lance driver
  *
  *	Written 1995, 1996 by Miguel de Icaza

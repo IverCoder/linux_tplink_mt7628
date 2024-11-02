@@ -1,4 +1,4 @@
-/* $Id: sunbmac.h,v 1.7 2000/07/11 22:35:22 davem Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/net/sunbmac.h#1 $
  * sunbmac.h: Defines for the Sun "Big MAC" 100baseT ethernet cards.
  *
  * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)

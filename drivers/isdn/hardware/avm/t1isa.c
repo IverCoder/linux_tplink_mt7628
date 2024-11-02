@@ -1,4 +1,4 @@
-/* $Id: t1isa.c,v 1.1.2.3 2004/02/10 01:07:12 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/avm/t1isa.c#1 $
  * 
  * Module for AVM T1 HEMA-card.
  * 
@@ -30,7 +30,7 @@
 
 /* ------------------------------------------------------------- */
 
-static char *revision = "$Revision: 1.1.2.3 $";
+static char *revision = "$Revision: #1 $";
 
 /* ------------------------------------------------------------- */
 

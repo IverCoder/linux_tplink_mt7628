@@ -1157,6 +1157,11 @@ MODULE_LICENSE ("GPL");
 #define	PLATFORM_DRIVER		ehci_hcd_au1xxx_driver
 #endif
 
+#if defined (CONFIG_RT3XXX_EHCI) || defined (CONFIG_RT3XXX_EHCI_MODULE)
+#include "ehci-rt3xxx.c"
+#define PLATFORM_DRIVER     rt3xxx_ehci_driver
+#endif
+
 #ifdef CONFIG_ARCH_OMAP3
 #include "ehci-omap.c"
 #define        PLATFORM_DRIVER         ehci_hcd_omap_driver

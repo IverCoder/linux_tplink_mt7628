@@ -1,5 +1,5 @@
 /*
- * $Id: ossiRelease.c,v 1.2 2008/05/08 20:14:03 rdobbs PMCC4_3_1B $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/staging/cxt1e1/ossiRelease.c#1 $
  */
 
 /*-----------------------------------------------------------------------------
@@ -27,9 +27,9 @@
  *
  *-----------------------------------------------------------------------------
  * RCS info:
- * RCS revision: $Revision: 1.2 $
- * Last changed on $Date: 2008/05/08 20:14:03 $
- * Changed by $Author: rdobbs $
+ * RCS revision: $Revision: #1 $
+ * Last changed on $Date: 2014/05/07 $
+ * Changed by $Author: red.hung $
  *-----------------------------------------------------------------------------
  */
 

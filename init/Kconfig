@@ -25,6 +25,7 @@ menu "General setup"
 
 config EXPERIMENTAL
 	bool "Prompt for development and/or incomplete code/drivers"
+	default y
 	---help---
 	  Some of the various things that Linux supports (such as network
 	  drivers, file systems, network protocols, etc.) can be in a state
@@ -652,6 +653,18 @@ config DEBUG_BLK_CGROUP
 
 endif # CGROUPS
 
+config SCHED_AUTOGROUP
+	bool "Automatic process group scheduling"
+	select CGROUPS
+	select CGROUP_SCHED
+	select FAIR_GROUP_SCHED
+	help
+	  This option optimizes the scheduler for common desktop workloads by
+	  automatically creating and populating task groups.  This separation
+	  of workloads isolates aggressive CPU burners (like build jobs) from
+	  desktop applications.  Task group autogeneration is currently based
+	  upon task tty association.
+
 config MM_OWNER
 	bool
 
@@ -979,6 +992,8 @@ config PERF_USE_VMALLOC
 	bool
 	help
 	  See tools/perf/design.txt for details
+
+source "init/Kconfig.tiny"
 
 menu "Kernel Performance Events And Counters"
 

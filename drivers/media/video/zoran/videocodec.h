@@ -6,7 +6,7 @@
  *
  * (c) 2002 Wolfgang Scherr <scherr@net4you.at>
  *
- * $Id: videocodec.h,v 1.1.2.4 2003/01/14 21:15:03 rbultje Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/media/video/zoran/videocodec.h#1 $
  *
  * ------------------------------------------------------------------------
  *

@@ -1,4 +1,4 @@
-/* $Id: capimain.c,v 1.24 2003/09/09 06:51:05 schindler Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hardware/eicon/capimain.c#1 $
  *
  * ISDN interface module for Eicon active cards DIVA.
  * CAPI Interface
@@ -26,7 +26,7 @@
 #include "cp_vers.h"
 #include "capifunc.h"
 
-static char *main_revision = "$Revision: 1.24 $";
+static char *main_revision = "$Revision: #1 $";
 static char *DRIVERNAME =
     "Eicon DIVA - CAPI Interface driver (http://www.melware.net)";
 static char *DRIVERLNAME = "divacapi";

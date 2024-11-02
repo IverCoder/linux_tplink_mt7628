@@ -2,7 +2,7 @@
 #define _GDTH_IOCTL_H
 
 /* gdth_ioctl.h
- * $Id: gdth_ioctl.h,v 1.14 2004/02/19 15:43:15 achim Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/gdth_ioctl.h#1 $
  */
 
 /* IOCTLs */

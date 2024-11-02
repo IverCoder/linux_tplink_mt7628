@@ -1,4 +1,4 @@
-/* $Id: hisax.h,v 2.64.2.4 2004/02/11 13:21:33 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/hisax/hisax.h#1 $
  *
  * Basic declarations, defines and prototypes
  *

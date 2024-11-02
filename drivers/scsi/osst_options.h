@@ -8,7 +8,7 @@
    Changed (and renamed) for OnStream SCSI drives garloff@suse.de
    2000-06-21
 
-   $Header: /cvsroot/osst/Driver/osst_options.h,v 1.6 2003/12/23 14:22:12 wriede Exp $
+   $Header: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/scsi/osst_options.h#1 $
 */
 
 #ifndef _OSST_OPTIONS_H

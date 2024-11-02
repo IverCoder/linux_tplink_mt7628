@@ -60,6 +60,13 @@
 #include <asm/tlb.h>
 #include "internal.h"
 
+/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+#include <linux/sched_optimize.h>
+#endif
+/* add end  */
+
+
 int core_uses_pid;
 char core_pattern[CORENAME_MAX_SIZE] = "core";
 unsigned int core_pipe_limit;
@@ -105,6 +112,7 @@ static inline void put_binfmt(struct linux_binfmt * fmt)
  */
 SYSCALL_DEFINE1(uselib, const char __user *, library)
 {
+#if defined(CONFIG_BINFMT_AOUT) || defined(CONFIG_BINFMT_AOUT_MODULE) || defined(CONFIG_BINFMT_ELF_AOUT)
 	struct file *file;
 	char *tmp = getname(library);
 	int error = PTR_ERR(tmp);
@@ -153,6 +161,9 @@ exit:
 	fput(file);
 out:
   	return error;
+#else
+	return -ENOSYS;
+#endif
 }
 
 #ifdef CONFIG_MMU
@@ -1405,6 +1416,12 @@ int do_execve(const char * filename,
 	retval = search_binary_handler(bprm,regs);
 	if (retval < 0)
 		goto out;
+
+	/* add by wanghao  */
+#if defined(CONFIG_SOFTIRQ_DYNAMIC_TUNNING) || defined(CONFIG_ACTIVE_FLOW_CONTROL)
+	filterWaitTask(current);
+#endif
+	/* add end  */
 
 	/* execve succeeded */
 	current->fs->in_exec = 0;

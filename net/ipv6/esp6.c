@@ -42,6 +42,18 @@
 #include <net/protocol.h>
 #include <linux/icmpv6.h>
 
+#if defined (CONFIG_RALINK_HWCRYPTO) || defined (CONFIG_RALINK_HWCRYPTO_MODULE)
+extern int 
+ipsec_esp6_output(
+	struct xfrm_state *x, 
+	struct sk_buff *skb
+);
+extern int 
+ipsec_esp6_input(
+	struct xfrm_state *x, 
+	struct sk_buff *skb
+);
+#endif
 struct esp_skb_cb {
 	struct xfrm_skb_cb xfrm;
 	void *tmp;
@@ -553,8 +565,13 @@ static const struct xfrm_type esp6_type =
 	.init_state	= esp6_init_state,
 	.destructor	= esp6_destroy,
 	.get_mtu	= esp6_get_mtu,
+#if defined (CONFIG_RALINK_HWCRYPTO) || defined (CONFIG_RALINK_HWCRYPTO_MODULE)
+	.input		= ipsec_esp6_input,
+	.output		= ipsec_esp6_output,
+#else	
 	.input		= esp6_input,
 	.output		= esp6_output,
+#endif	
 	.hdr_offset	= xfrm6_find_1stfragopt,
 };
 

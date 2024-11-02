@@ -31,6 +31,12 @@
 #include <net/rtnetlink.h>
 #include <net/xfrm.h>
 
+#ifdef CONFIG_X_TP_VLAN
+/*add for single-VID-multi-connection by wanghao*/
+#include "../../net/bridge/br_private.h"
+/*add end*/
+#endif
+
 #define MACVLAN_HASH_SIZE	(1 << BITS_PER_BYTE)
 
 struct macvlan_port {
@@ -161,6 +167,14 @@ static struct sk_buff *macvlan_handle_frame(struct sk_buff *skb)
 	unsigned int len = 0;
 	int ret = NET_RX_DROP;
 
+#ifdef CONFIG_X_TP_VLAN
+/*add for single-VID-multi-connection by wanghao*/
+	struct hlist_node *n;
+	struct sk_buff *skb2;
+	int i;
+/*add end*/
+#endif
+
 	port = macvlan_port_get_rcu(skb->dev);
 	if (is_multicast_ether_addr(eth->h_dest)) {
 		src = macvlan_hash_lookup(port, eth->h_source);
@@ -186,9 +200,15 @@ static struct sk_buff *macvlan_handle_frame(struct sk_buff *skb)
 	}
 
 	vlan = macvlan_hash_lookup(port, eth->h_dest);
+
+#ifndef CONFIG_X_TP_VLAN
 	if (vlan == NULL)
 		return skb;
-
+#else
+	/*modified for single-VID-multi-connection by wanghao*/
+	if (vlan != NULL)
+	{
+#endif
 	dev = vlan->dev;
 	if (unlikely(!(dev->flags & IFF_UP))) {
 		kfree_skb(skb);
@@ -207,6 +227,53 @@ static struct sk_buff *macvlan_handle_frame(struct sk_buff *skb)
 out:
 	macvlan_count_rx(vlan, len, ret == NET_RX_SUCCESS, 0);
 	return NULL;
+#ifdef CONFIG_X_TP_VLAN
+	}
+	/*
+	 * brief	add for single-VID-multi-connection
+	 * By	wangwenhao, 20May13
+	 */
+	else 
+	{
+		for (i = 0; i < MACVLAN_HASH_SIZE; i++) {
+			hlist_for_each_entry_rcu(vlan, n, &port->vlan_hash[i], hlist) {
+				dev = vlan->dev;
+				
+				if (br_fdb_test_addr_hook != NULL && br_fdb_test_addr_hook(dev, (unsigned char *)eth->h_dest))
+				{
+					dev->stats.rx_bytes += skb->len + ETH_HLEN;
+					dev->stats.rx_packets++;
+
+					skb->pkt_type = PACKET_HOST;
+					skb->dev = dev;
+					netif_rx(skb);
+					return NULL;
+				}
+			}
+		}
+	}
+	
+	for (i = 0; i < MACVLAN_HASH_SIZE; i++) {
+		hlist_for_each_entry_rcu(vlan, n, &port->vlan_hash[i], hlist) {
+			dev = vlan->dev;
+
+			skb2 = skb_copy(skb, GFP_ATOMIC);
+			if (NULL == skb2)
+			{
+				continue;
+			}
+			dev->stats.rx_bytes += skb->len + ETH_HLEN;
+			dev->stats.rx_packets++;
+
+			skb2->pkt_type = PACKET_HOST;
+			skb2->dev = dev;
+			netif_rx(skb2);
+		}
+	}
+
+	kfree_skb(skb);
+	return NULL;
+#endif
 }
 
 static int macvlan_queue_xmit(struct sk_buff *skb, struct net_device *dev)

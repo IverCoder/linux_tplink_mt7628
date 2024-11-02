@@ -1,4 +1,4 @@
-/* $Id: timer.c,v 1.3.6.1 2001/09/23 22:24:59 kai Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/sc/timer.c#1 $
  *
  * Copyright (C) 1996  SpellCaster Telecommunications Inc.
  *

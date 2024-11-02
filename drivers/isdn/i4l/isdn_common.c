@@ -1,4 +1,4 @@
-/* $Id: isdn_common.c,v 1.1.2.3 2004/02/10 01:07:13 keil Exp $
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/isdn/i4l/isdn_common.c#1 $
  *
  * Linux ISDN subsystem, common used functions (linklevel).
  *
@@ -43,7 +43,7 @@ MODULE_LICENSE("GPL");
 isdn_dev *dev;
 
 static DEFINE_MUTEX(isdn_mutex);
-static char *isdn_revision = "$Revision: 1.1.2.3 $";
+static char *isdn_revision = "$Revision: #1 $";
 
 extern char *isdn_net_revision;
 extern char *isdn_tty_revision;

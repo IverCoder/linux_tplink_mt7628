@@ -1,4 +1,4 @@
-/* $Id: scc.h,v 1.29 1997/04/02 14:56:45 jreuter Exp jreuter $ */
+/* $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/include/linux/scc.h#1 $ */
 
 #ifndef	_SCC_H
 #define	_SCC_H

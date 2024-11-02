@@ -762,7 +762,7 @@ static void __exit cleanup_mtd(void)
 	bdi_destroy(&mtd_bdi_rw_mappable);
 }
 
-module_init(init_mtd);
+fs_initcall(init_mtd);
 module_exit(cleanup_mtd);
 
 MODULE_LICENSE("GPL");

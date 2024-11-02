@@ -8,7 +8,7 @@
  * Based on work by Dan Hollis <goemon at anime dot net> and others.
  *	http://www.anime.net/~goemon/linux-ecc/
  *
- * $Id: edac_amd76x.c,v 1.4.2.5 2005/10/05 00:43:44 dsp_llnl Exp $
+ * $Id: //WIFI_SOC/MP/SDK_4_3_0_0/RT288x_SDK/source/linux-2.6.36.x/drivers/edac/amd76x_edac.c#1 $
  *
  */
 

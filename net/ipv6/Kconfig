@@ -250,4 +250,21 @@ config IPV6_PIMSM_V2
 	  Support for IPv6 PIM multicast routing protocol PIM-SMv2.
 	  If unsure, say N.
 
+config IPV6_ROUTER_WAN_SLAAC
+	bool "IPv6: Router WAN interfaces SLAAC support"
+	depends on IPV6
+	---help---
+	  Support Stateless Address Autoconfiguration in WAN interfaces of a router.
+
+	  If unsure, say N.
+
+config IPV6_ROUTER_WAN_AUTO
+	bool "IPv6: Router WAN interfaces AUTO support"
+	depends on IPV6
+	---help---
+	  Support Auto Address Configuration in WAN interfaces of a router.
+
+	  If unsure, say N.
+	  
+	  
 endif # IPV6
